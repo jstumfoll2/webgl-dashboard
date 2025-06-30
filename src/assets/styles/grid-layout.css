@@ -1,0 +1,496 @@
+/* Grid Layout Styles - AG-Grid Dashboard Layout */
+
+/* AG-Grid Theme Customization */
+.ag-theme-alpine {
+  --ag-background-color: var(--background-color);
+  --ag-foreground-color: var(--text-color);
+  --ag-border-color: var(--border-color);
+  --ag-header-background-color: var(--surface-color);
+  --ag-header-foreground-color: var(--text-color);
+  --ag-cell-horizontal-border: var(--border-color);
+  --ag-cell-vertical-border: var(--border-color);
+  --ag-row-hover-color: rgba(var(--primary-rgb), 0.05);
+  --ag-selected-row-background-color: rgba(var(--primary-rgb), 0.1);
+  --ag-odd-row-background-color: transparent;
+  --ag-even-row-background-color: rgba(var(--text-rgb), 0.02);
+  --ag-header-height: 40px;
+  --ag-row-height: 60px;
+  --ag-font-size: 14px;
+  --ag-font-family: var(--font-family);
+}
+
+/* Grid Container */
+.grid-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--background-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Grid Layout Wrapper */
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: minmax(200px, auto);
+  gap: 16px;
+  padding: 16px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Grid Item Styling */
+.grid-item {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.grid-item.dragging {
+  opacity: 0.8;
+  transform: scale(0.98);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+}
+
+.grid-item.drop-target {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+/* Grid Item Header */
+.grid-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  cursor: move;
+  user-select: none;
+  min-height: 48px;
+}
+
+.grid-item-header:hover {
+  background: rgba(var(--text-rgb), 0.02);
+}
+
+.grid-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.grid-item-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grid-item-control {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.grid-item-control:hover {
+  background: rgba(var(--text-rgb), 0.1);
+  color: var(--text-color);
+}
+
+.grid-item-control.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Grid Item Content */
+.grid-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Resize Handles */
+.resize-handle {
+  position: absolute;
+  background: var(--primary-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.grid-item:hover .resize-handle {
+  opacity: 0.6;
+}
+
+.resize-handle:hover {
+  opacity: 1;
+}
+
+.resize-handle.corner {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.resize-handle.edge {
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+}
+
+.resize-handle.top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  cursor: n-resize;
+}
+
+.resize-handle.bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  cursor: s-resize;
+}
+
+.resize-handle.left {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: w-resize;
+  background: linear-gradient(180deg, transparent, var(--primary-color), transparent);
+}
+
+.resize-handle.right {
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: e-resize;
+  background: linear-gradient(180deg, transparent, var(--primary-color), transparent);
+}
+
+.resize-handle.top-left {
+  top: 0;
+  left: 0;
+  cursor: nw-resize;
+}
+
+.resize-handle.top-right {
+  top: 0;
+  right: 0;
+  cursor: ne-resize;
+}
+
+.resize-handle.bottom-left {
+  bottom: 0;
+  left: 0;
+  cursor: sw-resize;
+}
+
+.resize-handle.bottom-right {
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+/* Grid Overlay */
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  background-image: 
+    linear-gradient(to right, rgba(var(--border-rgb), 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--border-rgb), 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.grid-container.show-grid .grid-overlay {
+  opacity: 1;
+}
+
+/* Grid Snap Indicators */
+.snap-indicator {
+  position: absolute;
+  border: 2px dashed var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.1);
+  pointer-events: none;
+  z-index: 15;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.snap-indicator.active {
+  opacity: 1;
+}
+
+/* Grid Statistics */
+.grid-stats {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.grid-container.show-stats .grid-stats {
+  opacity: 1;
+}
+
+/* Empty Grid State */
+.grid-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 40px;
+}
+
+.grid-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.grid-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.grid-empty-description {
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 300px;
+}
+
+/* Grid Loading State */
+.grid-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--background-rgb), 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.grid-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Layout */
+@media (max-width: 1200px) {
+  .grid-layout {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .grid-item {
+    min-height: 180px;
+  }
+  
+  .grid-item-header {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-layout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .grid-item {
+    min-height: 160px;
+  }
+  
+  .grid-item-header {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+  
+  .grid-item-title {
+    font-size: 13px;
+  }
+  
+  .resize-handle {
+    display: none;
+  }
+  
+  .grid-stats {
+    position: static;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-layout {
+    padding: 4px;
+    gap: 4px;
+  }
+  
+  .grid-item-header {
+    padding: 6px 8px;
+    min-height: 36px;
+  }
+  
+  .grid-item-control {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .resize-handle {
+    transform: scale(0.5);
+    transform-origin: center;
+  }
+  
+  .resize-handle.corner {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .resize-handle.edge {
+    background-size: 100% 200%;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .grid-container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .grid-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+  
+  .grid-item-controls,
+  .resize-handle,
+  .grid-overlay,
+  .snap-indicator {
+    display: none !important;
+  }
+  
+  .grid-item-header {
+    background: #f5f5f5 !important;
+    border-bottom: 1px solid #ccc;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .grid-item,
+  .grid-item-control,
+  .resize-handle,
+  .snap-indicator,
+  .grid-stats,
+  .grid-overlay {
+    transition: none;
+  }
+  
+  .grid-loading-spinner {
+    animation: none;
+  }
+}
+
+/* Focus Styles */
+.grid-item:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.grid-item-control:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .ag-theme-alpine {
+    --ag-background-color: #1a1a1a;
+    --ag-foreground-color: #e0e0e0;
+    --ag-border-color: #333;
+    --ag-header-background-color: #2d2d2d;
+    --ag-odd-row-background-color: transparent;
+    --ag-even-row-background-color: rgba(255, 255, 255, 0.02);
+  }
+  
+  .grid-overlay {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  }
+}

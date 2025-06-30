@@ -1,0 +1,494 @@
+/* ===== PLOT WIDGET STYLES ===== */
+
+/* Main widget container */
+.plot-widget {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--widget-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.plot-widget:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color);
+}
+
+.plot-widget.focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Widget header */
+.plot-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.plot-widget-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.plot-widget-title.editable {
+  cursor: text;
+  border: 1px solid transparent;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+}
+
+.plot-widget-title.editable:hover {
+  border-color: var(--border-color);
+}
+
+.plot-widget-title.editing {
+  border-color: var(--primary-color);
+  background: var(--input-bg);
+  outline: none;
+}
+
+/* Header controls */
+.plot-widget-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.plot-widget-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.plot-widget-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.plot-widget-btn:active {
+  transform: scale(0.95);
+}
+
+.plot-widget-btn.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.plot-widget-btn.danger:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+/* Main content area */
+.plot-widget-content {
+  flex: 1;
+  display: flex;
+  position: relative;
+  min-height: 0;
+}
+
+/* Plot container */
+.plot-container {
+  flex: 1;
+  position: relative;
+  background: var(--plot-bg);
+  overflow: hidden;
+}
+
+.plot-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Loading state */
+.plot-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--plot-bg);
+  z-index: 10;
+}
+
+.plot-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.plot-loading-text {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error state */
+.plot-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--plot-bg);
+  color: var(--error-color);
+  text-align: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+.plot-error-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.plot-error-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.plot-error-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.plot-error-retry {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.plot-error-retry:hover {
+  background: var(--primary-hover);
+}
+
+/* Configuration panel */
+.plot-config-panel {
+  width: 280px;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.plot-config-panel.collapsed {
+  width: 0;
+  border-left: none;
+  overflow: hidden;
+}
+
+/* Plot overlay elements */
+.plot-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Legend overlay */
+.plot-legend {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.plot-legend.dark {
+  background: rgba(30, 30, 30, 0.95);
+  color: white;
+  border-color: #444;
+}
+
+.plot-legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.plot-legend-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.plot-legend.dark .plot-legend-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.plot-legend-item:last-child {
+  margin-bottom: 0;
+}
+
+.plot-legend-item.disabled {
+  opacity: 0.5;
+}
+
+.plot-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.plot-legend-line {
+  width: 16px;
+  height: 2px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.plot-legend-text {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Crosshair cursor */
+.plot-container.crosshair {
+  cursor: crosshair;
+}
+
+/* Tooltip */
+.plot-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+}
+
+.plot-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+}
+
+/* Axis labels */
+.plot-axis-label {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.plot-axis-label.x-axis {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.plot-axis-label.y-axis {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center;
+}
+
+/* Resize handle */
+.plot-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nw-resize;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.plot-widget:hover .plot-resize-handle {
+  opacity: 0.5;
+}
+
+.plot-resize-handle::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-bottom: 8px solid var(--text-secondary);
+}
+
+/* Status indicator */
+.plot-status {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  z-index: 15;
+}
+
+.plot-status.connected {
+  background: var(--success-color);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.plot-status.disconnected {
+  background: var(--error-color);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.plot-status.loading {
+  background: var(--warning-color);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .plot-config-panel {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .plot-config-panel.open {
+    transform: translateX(0);
+  }
+  
+  .plot-widget-title {
+    font-size: 13px;
+  }
+  
+  .plot-widget-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  
+  .plot-legend {
+    font-size: 11px;
+    padding: 6px;
+  }
+  
+  .plot-tooltip {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .plot-widget-header {
+    padding: 6px 8px;
+    min-height: 36px;
+  }
+  
+  .plot-widget-title {
+    font-size: 12px;
+  }
+  
+  .plot-widget-controls {
+    gap: 2px;
+  }
+  
+  .plot-widget-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+  
+  .plot-legend {
+    font-size: 10px;
+    padding: 4px;
+  }
+  
+  .plot-legend-text {
+    font-size: 10px;
+  }
+}
