@@ -12,7 +12,7 @@ export const DEFAULT_GRID_CONFIG = {
     sortable: false,
     filter: false,
     resizable: true,
-    suppressMenu: true,
+    suppressHeaderMenuButton: true,
     suppressMovable: false,
   },
   enableRangeSelection: false,

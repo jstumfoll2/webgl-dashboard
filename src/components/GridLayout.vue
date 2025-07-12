@@ -156,6 +156,55 @@ export default {
     const gridApi = ref(null)
     const columnApi = ref(null)
     
+    // Widget cell renderer component - using render function for AG Grid compatibility
+    const widgetCellRenderer = (params) => {
+      if (!params.value) {
+        return ''
+      }
+      
+      const widget = params.value
+      const style = `
+        width: ${(widget.width || 1) * 100}px;
+        height: ${(widget.height || 1) * 60}px;
+        margin: 4px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+      `
+      
+      return `
+        <div class="widget-cell" style="${style}">
+          <div class="widget-header" style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+          ">
+            <span class="widget-title" style="font-weight: 600; font-size: 14px; color: #495057;">
+              ${widget.title || 'Plot Widget'}
+            </span>
+            <div class="widget-controls" style="display: flex; gap: 4px;">
+              <button class="widget-btn" title="Configure">⚙</button>
+              <button class="widget-btn" title="Remove">×</button>
+            </div>
+          </div>
+          <div class="widget-content" style="
+            height: calc(100% - 41px);
+            padding: 16px;
+            text-align: center;
+            color: #666;
+          ">
+            ${widget.title || 'Plot Widget'}<br>
+            <small>Widget Content Here</small>
+          </div>
+        </div>
+      `
+    }
+
     // Grid configuration
     const gridOptions = reactive({
       suppressMovableColumns: false,
@@ -169,10 +218,12 @@ export default {
       rowHeight: props.gridConfig.cellHeight,
       headerHeight: 0,
       suppressHorizontalScroll: false,
-      suppressVerticalScroll: false,
       alwaysShowHorizontalScroll: false,
       alwaysShowVerticalScroll: false,
-      domLayout: 'normal'
+      domLayout: 'normal',
+      components: {
+        widgetCellRenderer
+      }
     })
 
     // Column definitions - creates grid columns
@@ -188,7 +239,6 @@ export default {
       filter: false,
       width: props.gridConfig.cellWidth,
       minWidth: 50,
-      suppressMenu: true,
       suppressHeaderMenuButton: true,
       suppressHeaderFilterButton: true,
       suppressHeaderContextMenu: true
@@ -205,7 +255,7 @@ export default {
           width: props.gridConfig.cellWidth,
           cellRenderer: 'widgetCellRenderer',
           editable: false,
-          suppressMenu: true,
+          suppressHeaderMenuButton: true,
           sortable: false,
           resizable: true
         })
@@ -224,107 +274,11 @@ export default {
       rowData.value = rows
     }
 
-    // Widget cell renderer component
-    const widgetCellRenderer = {
-      template: `
-        <div 
-          v-if="params.value" 
-          class="widget-cell"
-          :style="getWidgetStyle()"
-          @mousedown="startDrag"
-        >
-          <div class="widget-header">
-            <span class="widget-title">{{ params.value.title || 'Plot Widget' }}</span>
-            <div class="widget-controls">
-              <button 
-                class="widget-btn resize-btn" 
-                @click="resizeWidget"
-                title="Resize Widget"
-              >⚏</button>
-              <button 
-                class="widget-btn config-btn" 
-                @click="configureWidget"
-                title="Configure Widget"
-              >⚙</button>
-              <button 
-                class="widget-btn remove-btn" 
-                @click="removeWidget"
-                title="Remove Widget"
-              >×</button>
-            </div>
-          </div>
-          <div class="widget-content">
-            <plot-widget 
-              :widget-id="params.value.id"
-              :config="params.value.config"
-              :data="params.value.data"
-              @config-changed="onWidgetConfigChanged"
-            />
-          </div>
-        </div>
-      `,
-      setup(props) {
-        const getWidgetStyle = () => {
-          if (!props.params.value) return {}
-          
-          const widget = props.params.value
-          return {
-            width: `${widget.width * props.gridConfig.cellWidth}px`,
-            height: `${widget.height * props.gridConfig.cellHeight}px`,
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            zIndex: widget.zIndex || 1
-          }
-        }
-
-        const startDrag = (event) => {
-          // Implement drag functionality
-          emit('widget-drag-start', {
-            widget: props.params.value,
-            event
-          })
-        }
-
-        const resizeWidget = () => {
-          emit('widget-resize-request', props.params.value)
-        }
-
-        const configureWidget = () => {
-          emit('widget-configure', props.params.value)
-        }
-
-        const removeWidget = () => {
-          emit('widget-removed', props.params.value.id)
-        }
-
-        const onWidgetConfigChanged = (config) => {
-          emit('widget-config-changed', {
-            widgetId: props.params.value.id,
-            config
-          })
-        }
-
-        return {
-          getWidgetStyle,
-          startDrag,
-          resizeWidget,
-          configureWidget,
-          removeWidget,
-          onWidgetConfigChanged
-        }
-      }
-    }
 
     // Grid event handlers
     const onGridReady = (params) => {
       gridApi.value = params.api
       columnApi.value = params.columnApi
-      
-      // Register cell renderer
-      params.api.setGridOption('components', {
-        widgetCellRenderer
-      })
       
       // Auto-size columns
       autoSize()

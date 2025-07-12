@@ -1,5 +1,5 @@
 import { ref, computed, watch, reactive } from 'vue'
-import { PLOT_COLORS, LINE_STYLES, MARKER_TYPES, AXIS_SCALES } from '../types/plotTypes.js'
+import { COLOR_PALETTES, LINE_STYLES, MARKER_STYLES, AXIS_SCALE_TYPES } from '../types/plotTypes.js'
 
 export function usePlotConfig(plotId) {
   // Base configuration state
@@ -13,7 +13,7 @@ export function usePlotConfig(plotId) {
     // Axis configuration
     xAxis: {
       label: 'X Axis',
-      scale: AXIS_SCALES.LINEAR,
+      scale: AXIS_SCALE_TYPES.LINEAR,
       min: null,
       max: null,
       autoScale: true,
@@ -22,7 +22,7 @@ export function usePlotConfig(plotId) {
     },
     yAxis: {
       label: 'Y Axis',
-      scale: AXIS_SCALES.LINEAR,
+      scale: AXIS_SCALE_TYPES.LINEAR,
       min: null,
       max: null,
       autoScale: true,
@@ -45,10 +45,10 @@ export function usePlotConfig(plotId) {
   })
 
   // Available configuration options
-  const availableColors = ref(Object.values(PLOT_COLORS))
+  const availableColors = ref(Object.values(COLOR_PALETTES.DEFAULT))
   const availableLineStyles = ref(Object.values(LINE_STYLES))
-  const availableMarkerTypes = ref(Object.values(MARKER_TYPES))
-  const availableAxisScales = ref(Object.values(AXIS_SCALES))
+  const availableMarkerTypes = ref(Object.values(MARKER_STYLES))
+  const availableAxisScales = ref(Object.values(AXIS_SCALE_TYPES))
   const availableLegendPositions = ref([
     'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'
   ])
@@ -64,7 +64,7 @@ export function usePlotConfig(plotId) {
       color: availableColors.value[config.series.length % availableColors.value.length],
       lineStyle: LINE_STYLES.SOLID,
       lineWidth: 2,
-      markerType: MARKER_TYPES.NONE,
+      markerType: MARKER_STYLES.CIRCLE,
       markerSize: 4,
       visible: true,
       scaleFactor: {
@@ -157,11 +157,11 @@ export function usePlotConfig(plotId) {
   })
 
   const isLogarithmicX = computed(() => {
-    return config.xAxis.scale === AXIS_SCALES.LOGARITHMIC
+    return config.xAxis.scale === AXIS_SCALE_TYPES.LOG
   })
 
   const isLogarithmicY = computed(() => {
-    return config.yAxis.scale === AXIS_SCALES.LOGARITHMIC
+    return config.yAxis.scale === AXIS_SCALE_TYPES.LOG
   })
 
   // Configuration presets
@@ -174,12 +174,12 @@ export function usePlotConfig(plotId) {
         backgroundColor: '#ffffff',
         xAxis: {
           label: 'X Axis',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true
         },
         yAxis: {
           label: 'Y Axis',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true
         },
         legend: {
@@ -193,14 +193,14 @@ export function usePlotConfig(plotId) {
         backgroundColor: '#f8f9fa',
         xAxis: {
           label: 'Independent Variable',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true,
           showTicks: true,
           tickCount: 10
         },
         yAxis: {
           label: 'Dependent Variable',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true,
           showTicks: true,
           tickCount: 10
@@ -217,12 +217,12 @@ export function usePlotConfig(plotId) {
         backgroundColor: '#1a1a1a',
         xAxis: {
           label: 'Time',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true
         },
         yAxis: {
           label: 'Value',
-          scale: AXIS_SCALES.LINEAR,
+          scale: AXIS_SCALE_TYPES.LINEAR,
           autoScale: true
         },
         legend: {
@@ -274,7 +274,7 @@ export function usePlotConfig(plotId) {
     }
     
     // Reset manual ranges when switching scales
-    if (scale === AXIS_SCALES.LOGARITHMIC) {
+    if (scale === AXIS_SCALE_TYPES.LOG) {
       config[`${axis}Axis`].min = null
       config[`${axis}Axis`].max = null
       config[`${axis}Axis`].autoScale = true

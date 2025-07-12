@@ -1,13 +1,13 @@
 import { ref, computed, watch, nextTick } from 'vue'
-import { dataUtils } from '../utils/dataUtils.js'
-import { sampleData } from '../assets/sample-data/sampleData.js'
+import dataUtils from '../utils/dataUtils.js'
+import { SAMPLE_DATASETS as sampleData } from '../assets/sample-data/sampleData.js'
 
 export function usePlotData(widgetId) {
   // Reactive state
   const datasets = ref([])
   const activeDatasets = ref([])
   const selectedDataSource = ref('sample')
-  const selectedSampleDataset = ref('sine')
+  const selectedSampleDataset = ref('sine-wave')
   const isLoading = ref(false)
   const error = ref(null)
   const realTimeActive = ref(false)
@@ -79,15 +79,18 @@ export function usePlotData(widgetId) {
         throw new Error(`Sample dataset '${datasetKey}' not found`)
       }
       
-      const data = typeof dataset.generate === 'function' 
-        ? dataset.generate() 
+      const rawData = typeof dataset.generator === 'function' 
+        ? dataset.generator() 
         : dataset.data
+      
+      // Convert {x: [], y: []} format to [{x, y}, ...] format
+      const data = rawData.x.map((x, i) => ({ x, y: rawData.y[i] }))
       
       const newDataset = {
         id: `sample_${datasetKey}_${Date.now()}`,
         name: dataset.name,
         data: data,
-        color: dataset.color || getNextColor(),
+        color: dataset.suggestedColors?.[0] || getNextColor(),
         lineWidth: 2,
         visible: true,
         type: 'line',

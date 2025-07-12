@@ -3,8 +3,29 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
+// Default line colors for multiple datasets
+export const DEFAULT_LINE_COLORS = [
+  '#2196F3', // Blue
+  '#F44336', // Red
+  '#4CAF50', // Green
+  '#FF9800', // Orange
+  '#9C27B0', // Purple
+  '#00BCD4', // Cyan
+  '#FFEB3B', // Yellow
+  '#795548', // Brown
+  '#607D8B', // Blue Grey
+  '#E91E63', // Pink
+  '#3F51B5', // Indigo
+  '#009688'  // Teal
+];
+
+// Get line color by index, cycling through the default colors
+export const getLineColor = (index) => {
+  return DEFAULT_LINE_COLORS[index % DEFAULT_LINE_COLORS.length];
+};
+
 // Utility functions
-const generateId = (prefix = 'id') => {
+export const generateId = (prefix = 'id') => {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 

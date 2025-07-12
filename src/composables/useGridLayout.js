@@ -19,7 +19,7 @@ export function useGridLayout() {
       sortable: false,
       filter: false,
       editable: false,
-      suppressMenu: true,
+      suppressHeaderMenuButton: true,
       minWidth: 200,
       maxWidth: 800
     },
@@ -32,7 +32,6 @@ export function useGridLayout() {
     rowHeight: 300,
     headerHeight: 0, // Hide headers for dashboard view
     suppressHorizontalScroll: false,
-    suppressVerticalScroll: false,
     domLayout: 'normal'
   })
 

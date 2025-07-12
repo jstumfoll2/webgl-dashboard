@@ -669,6 +669,109 @@ export const generateCacheKey = (operation, data, options = {}) => {
   return `${operation}_${dataHash}_${optionsHash}`.replace(/[^\w]/g, '_')
 }
 
+/**
+ * Parse uploaded file based on its extension
+ */
+export const parseFile = async (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    const extension = file.name.split('.').pop().toLowerCase()
+    
+    reader.onload = (event) => {
+      try {
+        const content = event.target.result
+        let data = []
+        
+        switch (extension) {
+          case 'csv':
+          case 'tsv':
+            data = parseCSV(content, {
+              delimiter: extension === 'tsv' ? '\t' : ',',
+              hasHeaders: true
+            })
+            break
+          case 'json':
+            data = parseJSON(content)
+            break
+          case 'txt':
+            // Try to parse as CSV first, fallback to space-separated
+            try {
+              data = parseCSV(content, { delimiter: ',' })
+              if (data.length === 0) {
+                data = parseCSV(content, { delimiter: ' ' })
+              }
+            } catch {
+              data = parseCSV(content, { delimiter: ' ' })
+            }
+            break
+          default:
+            reject(new Error(`Unsupported file format: ${extension}`))
+            return
+        }
+        
+        if (data.length === 0) {
+          reject(new Error('No valid data found in file'))
+          return
+        }
+        
+        resolve(sanitizeDataPoints(data))
+      } catch (error) {
+        reject(new Error(`Failed to parse file: ${error.message}`))
+      }
+    }
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'))
+    }
+    
+    reader.readAsText(file)
+  })
+}
+
+/**
+ * Export data in specified format
+ */
+export const exportData = (data, format = 'csv', filename = 'data') => {
+  let content = ''
+  let mimeType = 'text/plain'
+  let extension = 'txt'
+  
+  switch (format.toLowerCase()) {
+    case 'csv':
+      content = dataToCSV(data, true)
+      mimeType = 'text/csv'
+      extension = 'csv'
+      break
+    case 'json':
+      content = dataToJSON(data, 'object')
+      mimeType = 'application/json'
+      extension = 'json'
+      break
+    case 'tsv':
+      content = dataToCSV(data, true).replace(/,/g, '\t')
+      mimeType = 'text/tab-separated-values'
+      extension = 'tsv'
+      break
+    default:
+      content = dataToCSV(data, true)
+      mimeType = 'text/csv'
+      extension = 'csv'
+  }
+  
+  // Create and trigger download
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${filename}.${extension}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+  
+  return content
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -700,6 +803,8 @@ export default {
   dataToCSV,
   parseJSON,
   dataToJSON,
+  parseFile,
+  exportData,
   
   // Caching
   dataCache,
