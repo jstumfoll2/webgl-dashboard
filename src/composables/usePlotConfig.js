@@ -335,6 +335,43 @@ export function usePlotConfig(plotId) {
     return availableColor || availableColors.value[0]
   }
 
+  // Create default configuration
+  const createDefaultConfig = () => {
+    return {
+      title: '',
+      subtitle: '',
+      showGrid: true,
+      backgroundColor: '#ffffff',
+      xAxis: {
+        label: 'X Axis',
+        scale: AXIS_SCALE_TYPES.LINEAR,
+        min: null,
+        max: null,
+        autoScale: true,
+        showTicks: true,
+        tickCount: 10
+      },
+      yAxis: {
+        label: 'Y Axis',
+        scale: AXIS_SCALE_TYPES.LINEAR,
+        min: null,
+        max: null,
+        autoScale: true,
+        showTicks: true,
+        tickCount: 10
+      },
+      legend: {
+        enabled: true,
+        position: 'top-right',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: '#cccccc',
+        fontSize: 12,
+        padding: 8
+      },
+      series: []
+    }
+  }
+
   return {
     // Configuration state
     config,
@@ -380,6 +417,7 @@ export function usePlotConfig(plotId) {
     configChanged,
     markConfigSaved,
     generateSeriesName,
-    getNextAvailableColor
+    getNextAvailableColor,
+    createDefaultConfig
   }
 }

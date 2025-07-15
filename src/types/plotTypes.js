@@ -15,7 +15,7 @@ export const PLOT_TYPES = {
   SCATTER: 'scatter',
   AREA: 'area',
   BAR: 'bar',
-  HISTOGRAM: 'histogram'
+  HISTOGRAM: 'histogram',
 }
 
 /**
@@ -26,7 +26,7 @@ export const AXIS_SCALE_TYPES = {
   LOG: 'log',
   SEMI_LOG_X: 'semiLogX',
   SEMI_LOG_Y: 'semiLogY',
-  LOG_LOG: 'logLog'
+  LOG_LOG: 'logLog',
 }
 
 /**
@@ -37,7 +37,7 @@ export const DATA_SOURCE_TYPES = {
   FILE: 'file',
   REALTIME: 'realtime',
   FUNCTION: 'function',
-  API: 'api'
+  API: 'api',
 }
 
 /**
@@ -47,7 +47,7 @@ export const WIDGET_SIZES = {
   SMALL: { width: 300, height: 200 },
   MEDIUM: { width: 450, height: 300 },
   LARGE: { width: 600, height: 400 },
-  XLARGE: { width: 800, height: 500 }
+  XLARGE: { width: 800, height: 500 },
 }
 
 /**
@@ -59,7 +59,7 @@ export const COLOR_PALETTES = {
   PLASMA: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636'],
   COOL: ['#0000ff', '#0080ff', '#00ffff', '#80ff80', '#ffff00'],
   WARM: ['#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00'],
-  MONOCHROME: ['#000000', '#333333', '#666666', '#999999', '#cccccc']
+  MONOCHROME: ['#000000', '#333333', '#666666', '#999999', '#cccccc'],
 }
 
 /**
@@ -69,7 +69,7 @@ export const LINE_STYLES = {
   SOLID: 'solid',
   DASHED: 'dashed',
   DOTTED: 'dotted',
-  DASH_DOT: 'dashDot'
+  DASH_DOT: 'dashDot',
 }
 
 /**
@@ -81,7 +81,7 @@ export const MARKER_STYLES = {
   TRIANGLE: 'triangle',
   DIAMOND: 'diamond',
   CROSS: 'cross',
-  PLUS: 'plus'
+  PLUS: 'plus',
 }
 
 /**
@@ -95,7 +95,7 @@ export const LEGEND_POSITIONS = {
   TOP_CENTER: 'topCenter',
   BOTTOM_CENTER: 'bottomCenter',
   LEFT: 'left',
-  RIGHT: 'right'
+  RIGHT: 'right',
 }
 
 /**
@@ -104,7 +104,7 @@ export const LEGEND_POSITIONS = {
 export const GRID_MODES = {
   FIXED: 'fixed',
   FLUID: 'fluid',
-  RESPONSIVE: 'responsive'
+  RESPONSIVE: 'responsive',
 }
 
 // ============================================================================
@@ -117,7 +117,7 @@ export const GRID_MODES = {
 export const createPoint = (x = 0, y = 0, metadata = {}) => ({
   x,
   y,
-  metadata
+  metadata,
 })
 
 /**
@@ -129,7 +129,7 @@ export const createDataset = (config = {}) => ({
   data: config.data || [],
   type: config.type || PLOT_TYPES.LINE,
   visible: config.visible !== false,
-  
+
   // Visual properties
   color: config.color || COLOR_PALETTES.DEFAULT[0],
   lineWidth: config.lineWidth || 2,
@@ -137,21 +137,21 @@ export const createDataset = (config = {}) => ({
   markerSize: config.markerSize || 4,
   markerStyle: config.markerStyle || MARKER_STYLES.CIRCLE,
   opacity: config.opacity || 1.0,
-  
+
   // Data transformations
   xScale: config.xScale || 1,
   yScale: config.yScale || 1,
   xOffset: config.xOffset || 0,
   yOffset: config.yOffset || 0,
-  
+
   // Metadata
   units: config.units || { x: '', y: '' },
   description: config.description || '',
   source: config.source || DATA_SOURCE_TYPES.SAMPLE,
-  
+
   // WebGL specific
   glBuffer: null,
-  needsUpdate: true
+  needsUpdate: true,
 })
 
 /**
@@ -171,7 +171,7 @@ export const createAxisConfig = (config = {}) => ({
   tickColor: config.tickColor || '#666666',
   labelColor: config.labelColor || '#333333',
   fontSize: config.fontSize || 12,
-  fontFamily: config.fontFamily || 'Arial, sans-serif'
+  fontFamily: config.fontFamily || 'Arial, sans-serif',
 })
 
 /**
@@ -189,7 +189,7 @@ export const createLegendConfig = (config = {}) => ({
   textColor: config.textColor || '#333333',
   itemSpacing: config.itemSpacing || 4,
   symbolWidth: config.symbolWidth || 20,
-  symbolHeight: config.symbolHeight || 2
+  symbolHeight: config.symbolHeight || 2,
 })
 
 /**
@@ -201,41 +201,41 @@ export const createPlotConfig = (config = {}) => ({
   subtitle: config.subtitle || '',
   width: config.width || WIDGET_SIZES.MEDIUM.width,
   height: config.height || WIDGET_SIZES.MEDIUM.height,
-  
+
   // Background and styling
   backgroundColor: config.backgroundColor || '#ffffff',
   borderColor: config.borderColor || '#dddddd',
   borderWidth: config.borderWidth || 1,
-  
+
   // Margins and padding
   margin: config.margin || { top: 40, right: 40, bottom: 60, left: 80 },
   padding: config.padding || { top: 10, right: 10, bottom: 10, left: 10 },
-  
+
   // Axes configuration
   xAxis: createAxisConfig(config.xAxis),
   yAxis: createAxisConfig(config.yAxis),
-  
+
   // Legend configuration
   legend: createLegendConfig(config.legend),
-  
+
   // Datasets
   datasets: config.datasets || [],
-  
+
   // Interaction settings
   enableZoom: config.enableZoom !== false,
   enablePan: config.enablePan !== false,
   enableCrosshair: config.enableCrosshair || false,
   enableTooltip: config.enableTooltip !== false,
-  
+
   // Performance settings
   maxDataPoints: config.maxDataPoints || 10000,
   animationDuration: config.animationDuration || 300,
   throttleUpdates: config.throttleUpdates !== false,
-  
+
   // WebGL settings
   antialias: config.antialias !== false,
   preserveDrawingBuffer: config.preserveDrawingBuffer || false,
-  powerPreference: config.powerPreference || 'default'
+  powerPreference: config.powerPreference || 'default',
 })
 
 /**
@@ -245,28 +245,28 @@ export const createWidgetConfig = (config = {}) => ({
   id: config.id || generateId(),
   title: config.title || 'New Widget',
   type: config.type || 'plot',
-  
+
   // Grid position and size
   gridPosition: config.gridPosition || { x: 0, y: 0, width: 4, height: 3 },
   minSize: config.minSize || { width: 200, height: 150 },
   maxSize: config.maxSize || { width: 1200, height: 800 },
-  
+
   // Widget state
   visible: config.visible !== false,
   locked: config.locked || false,
   minimized: config.minimized || false,
-  
+
   // Plot configuration
   plotConfig: createPlotConfig(config.plotConfig),
-  
+
   // Widget styling
   headerColor: config.headerColor || '#f8f9fa',
   headerHeight: config.headerHeight || 40,
-  
+
   // Metadata
   created: config.created || new Date().toISOString(),
   modified: config.modified || new Date().toISOString(),
-  tags: config.tags || []
+  tags: config.tags || [],
 })
 
 /**
@@ -276,7 +276,7 @@ export const createDashboardConfig = (config = {}) => ({
   id: config.id || generateId(),
   name: config.name || 'New Dashboard',
   description: config.description || '',
-  
+
   // Grid configuration
   gridConfig: {
     columns: config.gridConfig?.columns || 12,
@@ -284,26 +284,26 @@ export const createDashboardConfig = (config = {}) => ({
     margin: config.gridConfig?.margin || [10, 10],
     containerPadding: config.gridConfig?.containerPadding || [20, 20],
     resizable: config.gridConfig?.resizable !== false,
-    draggable: config.gridConfig?.draggable !== false
+    draggable: config.gridConfig?.draggable !== false,
   },
-  
+
   // Widgets
   widgets: config.widgets || [],
-  
+
   // Layout settings
   autoArrange: config.autoArrange || false,
   snapToGrid: config.snapToGrid !== false,
-  
+
   // Theme and styling
   theme: config.theme || 'light',
   backgroundColor: config.backgroundColor || '#f5f5f5',
-  
+
   // Metadata
   created: config.created || new Date().toISOString(),
   modified: config.modified || new Date().toISOString(),
   version: config.version || '1.0.0',
   author: config.author || '',
-  tags: config.tags || []
+  tags: config.tags || [],
 })
 
 /**
@@ -313,29 +313,29 @@ export const createDataSourceConfig = (config = {}) => ({
   id: config.id || generateId(),
   name: config.name || 'Data Source',
   type: config.type || DATA_SOURCE_TYPES.SAMPLE,
-  
+
   // Source-specific configuration
   url: config.url || '',
   filePath: config.filePath || '',
   apiEndpoint: config.apiEndpoint || '',
-  
+
   // Data format
   format: config.format || 'json', // json, csv, tsv, xml
   delimiter: config.delimiter || ',',
   headers: config.headers || true,
-  
+
   // Refresh settings
   refreshInterval: config.refreshInterval || 0, // 0 = no auto-refresh
   lastRefresh: config.lastRefresh || null,
-  
+
   // Data transformation
   xColumn: config.xColumn || 0,
   yColumn: config.yColumn || 1,
   filterExpression: config.filterExpression || '',
-  
+
   // Metadata
   description: config.description || '',
-  created: config.created || new Date().toISOString()
+  created: config.created || new Date().toISOString(),
 })
 
 /**
@@ -345,20 +345,20 @@ export const createStreamConfig = (config = {}) => ({
   id: config.id || generateId(),
   name: config.name || 'Data Stream',
   active: config.active || false,
-  
+
   // Stream settings
   updateInterval: config.updateInterval || 1000, // milliseconds
   bufferSize: config.bufferSize || 1000,
   autoScroll: config.autoScroll !== false,
-  
+
   // Data generation (for simulated streams)
   generator: config.generator || null,
   generatorConfig: config.generatorConfig || {},
-  
+
   // WebSocket settings (for real streams)
   websocketUrl: config.websocketUrl || '',
   reconnectAttempts: config.reconnectAttempts || 5,
-  reconnectDelay: config.reconnectDelay || 1000
+  reconnectDelay: config.reconnectDelay || 1000,
 })
 
 // ============================================================================
@@ -377,24 +377,24 @@ export const generateId = () => {
  */
 export const validatePlotConfig = (config) => {
   const errors = []
-  
+
   if (!config) {
     errors.push('Plot configuration is required')
     return errors
   }
-  
+
   if (!config.id) {
     errors.push('Plot ID is required')
   }
-  
+
   if (config.width && (config.width < 100 || config.width > 2000)) {
     errors.push('Plot width must be between 100 and 2000 pixels')
   }
-  
+
   if (config.height && (config.height < 100 || config.height > 1500)) {
     errors.push('Plot height must be between 100 and 1500 pixels')
   }
-  
+
   if (config.datasets) {
     config.datasets.forEach((dataset, index) => {
       if (!dataset.id) {
@@ -405,7 +405,7 @@ export const validatePlotConfig = (config) => {
       }
     })
   }
-  
+
   return errors
 }
 
@@ -414,16 +414,16 @@ export const validatePlotConfig = (config) => {
  */
 export const validateDataset = (dataset) => {
   const errors = []
-  
+
   if (!dataset) {
     errors.push('Dataset is required')
     return errors
   }
-  
+
   if (!dataset.id) {
     errors.push('Dataset ID is required')
   }
-  
+
   if (!Array.isArray(dataset.data)) {
     errors.push('Dataset data must be an array')
   } else {
@@ -437,11 +437,11 @@ export const validateDataset = (dataset) => {
       }
     })
   }
-  
+
   if (dataset.color && !/^#[0-9A-F]{6}$/i.test(dataset.color)) {
     errors.push('Dataset color must be a valid hex color')
   }
-  
+
   return errors
 }
 
@@ -457,7 +457,7 @@ export const cloneConfig = (config) => {
  */
 export const mergeConfigs = (baseConfig, overrideConfig) => {
   const merged = cloneConfig(baseConfig)
-  
+
   const merge = (target, source) => {
     for (const key in source) {
       if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
@@ -468,7 +468,7 @@ export const mergeConfigs = (baseConfig, overrideConfig) => {
       }
     }
   }
-  
+
   merge(merged, overrideConfig)
   return merged
 }
@@ -478,30 +478,34 @@ export const mergeConfigs = (baseConfig, overrideConfig) => {
  */
 export const getDefaultConfigForType = (plotType) => {
   const baseConfig = createPlotConfig()
-  
+
   switch (plotType) {
     case PLOT_TYPES.LINE:
       return mergeConfigs(baseConfig, {
-        datasets: [createDataset({ type: PLOT_TYPES.LINE })]
+        datasets: [createDataset({ type: PLOT_TYPES.LINE })],
       })
-      
+
     case PLOT_TYPES.SCATTER:
       return mergeConfigs(baseConfig, {
-        datasets: [createDataset({ 
-          type: PLOT_TYPES.SCATTER,
-          lineWidth: 0,
-          markerSize: 6
-        })]
+        datasets: [
+          createDataset({
+            type: PLOT_TYPES.SCATTER,
+            lineWidth: 0,
+            markerSize: 6,
+          }),
+        ],
       })
-      
+
     case PLOT_TYPES.AREA:
       return mergeConfigs(baseConfig, {
-        datasets: [createDataset({ 
-          type: PLOT_TYPES.AREA,
-          opacity: 0.7
-        })]
+        datasets: [
+          createDataset({
+            type: PLOT_TYPES.AREA,
+            opacity: 0.7,
+          }),
+        ],
       })
-      
+
     default:
       return baseConfig
   }
@@ -530,7 +534,7 @@ export default {
   MARKER_STYLES,
   LEGEND_POSITIONS,
   GRID_MODES,
-  
+
   // Factories
   createPoint,
   createDataset,
@@ -541,7 +545,7 @@ export default {
   createDashboardConfig,
   createDataSourceConfig,
   createStreamConfig,
-  
+
   // Utilities
   generateId,
   validatePlotConfig,
@@ -549,5 +553,5 @@ export default {
   cloneConfig,
   mergeConfigs,
   getDefaultConfigForType,
-  migrateConfig
+  migrateConfig,
 }

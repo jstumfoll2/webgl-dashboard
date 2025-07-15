@@ -15,19 +15,19 @@ const routes = [
   {
     path: '/',
     name: 'Dashboard',
-    component: () => import('./components/Dashboard.vue')
+    component: () => import('./components/Dashboard.vue'),
   },
   {
     path: '/widget/:id',
     name: 'Widget',
     component: () => import('./components/PlotWidget.vue'),
-    props: true
-  }
+    props: true,
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 // Pinia store setup

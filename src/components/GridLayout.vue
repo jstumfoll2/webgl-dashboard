@@ -1,83 +1,69 @@
 <template>
   <div class="grid-layout-container">
-    <!-- Grid Toolbar -->
-    <div class="grid-toolbar">
-      <div class="toolbar-left">
-        <button 
-          class="btn-primary"
-          @click="addWidget"
-          :disabled="isAddingWidget"
-        >
-          <span class="icon">+</span>
-          Add Plot Widget
-        </button>
-        
-        <button 
-          class="btn-secondary"
-          @click="toggleGridLines"
-        >
-          <span class="icon">⋯</span>
-          {{ showGridLines ? 'Hide Grid' : 'Show Grid' }}
-        </button>
-        
-        <button 
-          class="btn-secondary"
-          @click="autoSize"
-        >
-          <span class="icon">⚏</span>
-          Auto Size
-        </button>
-      </div>
-      
-      <div class="toolbar-right">
-        <button 
-          class="btn-secondary"
-          @click="saveLayout"
-        >
-          <span class="icon">💾</span>
-          Save Layout
-        </button>
-        
-        <button 
-          class="btn-secondary"
-          @click="loadLayout"
-        >
-          <span class="icon">📁</span>
-          Load Layout
-        </button>
-        
-        <button 
-          class="btn-secondary"
-          @click="resetLayout"
-        >
-          <span class="icon">🔄</span>
-          Reset
-        </button>
-      </div>
-    </div>
-
-    <!-- AG-Grid Container -->
-    <div 
+    <!-- Vue Grid Layout Container -->
+    <div
       ref="gridContainer"
-      class="ag-grid-container"
+      class="vue-grid-container"
       :class="{ 'show-grid-lines': showGridLines }"
     >
-      <ag-grid-vue
-        ref="agGrid"
-        class="ag-theme-alpine dashboard-grid"
-        :columnDefs="columnDefs"
-        :rowData="rowData"
-        :gridOptions="gridOptions"
-        :suppressRowClickSelection="true"
-        :suppressCellFocus="true"
-        :suppressRowSelection="true"
-        :enableRangeSelection="false"
-        :defaultColDef="defaultColDef"
-        @grid-ready="onGridReady"
-        @cell-value-changed="onCellValueChanged"
-        @column-resized="onColumnResized"
-        @row-drag-end="onRowDragEnd"
-      />
+      <grid-layout
+        v-model:layout="layout"
+        :col-num="gridConfig.columns"
+        :row-height="gridConfig.cellHeight"
+        :is-draggable="true"
+        :is-resizable="true"
+        :is-mirrored="false"
+        :vertical-compact="false"
+        :margin="[10, 10]"
+        :use-css-transforms="true"
+        @layout-created="onLayoutCreated"
+        @layout-before-mount="onLayoutBeforeMount"
+        @layout-mounted="onLayoutMounted"
+        @layout-ready="onLayoutReady"
+        @layout-updated="onLayoutUpdated"
+        @breakpoint-changed="onBreakpointChanged"
+      >
+        <template v-if="layout && layout.length > 0">
+          <grid-item
+            v-for="item in filteredLayout"
+            :key="item.i || `item-${item.x}-${item.y}`"
+            :x="item.x"
+            :y="item.y"
+            :w="item.w"
+            :h="item.h"
+            :i="item.i"
+            :is-draggable="true"
+            :is-resizable="true"
+            class="grid-item"
+          >
+            <div class="widget-wrapper">
+              <div class="widget-header">
+                <span class="widget-title">{{ getWidgetTitle(item.i) }}</span>
+                <div class="widget-controls">
+                  <button class="widget-btn" title="Configure" @click="configureWidget(item.i)">
+                    ⚙
+                  </button>
+                  <button
+                    class="widget-btn remove-btn"
+                    title="Remove"
+                    @click="removeWidget(item.i)"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div class="widget-content">
+                <plot-widget
+                  :widget-id="item.i"
+                  :data="getWidgetData(item.i)"
+                  :config="getWidgetConfig(item.i)"
+                  @widget-updated="onWidgetUpdated"
+                />
+              </div>
+            </div>
+          </grid-item>
+        </template>
+      </grid-layout>
     </div>
 
     <!-- Widget Size Dialog -->
@@ -109,21 +95,21 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { AgGridVue } from 'ag-grid-vue3'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
+import { ref, computed, onMounted, watch } from 'vue'
+import { GridLayout, GridItem } from 'vue3-grid-layout-next'
 import PlotWidget from './PlotWidget.vue'
 
 export default {
-  name: 'GridLayout',
+  name: 'DashboardGridLayout',
   components: {
-    AgGridVue
+    GridLayout,
+    GridItem,
+    PlotWidget,
   },
   props: {
     widgets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     gridConfig: {
       type: Object,
@@ -131,9 +117,13 @@ export default {
         columns: 12,
         rows: 20,
         cellHeight: 60,
-        cellWidth: 100
-      })
-    }
+        cellWidth: 100,
+      }),
+    },
+    showGridLines: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: [
     'widget-added',
@@ -142,175 +132,112 @@ export default {
     'widget-resized',
     'layout-changed',
     'layout-saved',
-    'layout-loaded'
+    'layout-loaded',
+    'widget-configure',
   ],
   setup(props, { emit }) {
     // Refs
     const gridContainer = ref(null)
-    const agGrid = ref(null)
-    
+
     // Reactive state
-    const showGridLines = ref(true)
     const showSizeDialog = ref(false)
     const isAddingWidget = ref(false)
-    const gridApi = ref(null)
-    const columnApi = ref(null)
-    
-    // Widget cell renderer component - using render function for AG Grid compatibility
-    const widgetCellRenderer = (params) => {
-      if (!params.value) {
-        return ''
-      }
-      
-      const widget = params.value
-      const style = `
-        width: ${(widget.width || 1) * 100}px;
-        height: ${(widget.height || 1) * 60}px;
-        margin: 4px;
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        overflow: hidden;
-      `
-      
-      return `
-        <div class="widget-cell" style="${style}">
-          <div class="widget-header" style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-          ">
-            <span class="widget-title" style="font-weight: 600; font-size: 14px; color: #495057;">
-              ${widget.title || 'Plot Widget'}
-            </span>
-            <div class="widget-controls" style="display: flex; gap: 4px;">
-              <button class="widget-btn" title="Configure">⚙</button>
-              <button class="widget-btn" title="Remove">×</button>
-            </div>
-          </div>
-          <div class="widget-content" style="
-            height: calc(100% - 41px);
-            padding: 16px;
-            text-align: center;
-            color: #666;
-          ">
-            ${widget.title || 'Plot Widget'}<br>
-            <small>Widget Content Here</small>
-          </div>
-        </div>
-      `
-    }
 
-    // Grid configuration
-    const gridOptions = reactive({
-      suppressMovableColumns: false,
-      suppressColumnMoveAnimation: false,
-      animateRows: true,
-      rowDragManaged: true,
-      rowSelection: 'single',
-      suppressRowClickSelection: true,
-      suppressCellFocus: true,
-      enableRangeSelection: false,
-      rowHeight: props.gridConfig.cellHeight,
-      headerHeight: 0,
-      suppressHorizontalScroll: false,
-      alwaysShowHorizontalScroll: false,
-      alwaysShowVerticalScroll: false,
-      domLayout: 'normal',
-      components: {
-        widgetCellRenderer
-      }
-    })
+    // Vue Grid Layout state
+    const layout = ref([])
 
-    // Column definitions - creates grid columns
-    const columnDefs = ref([])
-    
-    // Row data - represents grid cells
-    const rowData = ref([])
+    // Computed property to filter valid layout items
+    const filteredLayout = computed(() =>
+      layout.value.filter((item) => item && item.i && typeof item.i === 'string'),
+    )
 
-    // Default column definition
-    const defaultColDef = reactive({
-      resizable: true,
-      sortable: false,
-      filter: false,
-      width: props.gridConfig.cellWidth,
-      minWidth: 50,
-      suppressHeaderMenuButton: true,
-      suppressHeaderFilterButton: true,
-      suppressHeaderContextMenu: true
-    })
+    // Widget data store
+    const widgetData = ref(new Map())
 
-    // Initialize grid structure
-    const initializeGrid = () => {
-      // Create column definitions
-      const cols = []
-      for (let i = 0; i < props.gridConfig.columns; i++) {
-        cols.push({
-          field: `col${i}`,
-          headerName: '',
-          width: props.gridConfig.cellWidth,
-          cellRenderer: 'widgetCellRenderer',
-          editable: false,
-          suppressHeaderMenuButton: true,
-          sortable: false,
-          resizable: true
-        })
-      }
-      columnDefs.value = cols
-
-      // Create row data
-      const rows = []
-      for (let i = 0; i < props.gridConfig.rows; i++) {
-        const row = { id: i }
-        for (let j = 0; j < props.gridConfig.columns; j++) {
-          row[`col${j}`] = null
+    // Convert props.widgets to layout format
+    const updateLayoutFromWidgets = () => {
+      // Filter out widgets without valid IDs and validate
+      const validWidgets = props.widgets.filter((widget) => {
+        if (!widget.id || typeof widget.id !== 'string' || widget.id.trim() === '') {
+          console.warn('Widget missing valid ID, skipping:', widget)
+          return false
         }
-        rows.push(row)
-      }
-      rowData.value = rows
-    }
+        return true
+      })
 
+      // Map valid widgets to layout format
+      layout.value = validWidgets.map((widget) => ({
+        i: widget.id,
+        x: widget.x || 0,
+        y: widget.y || 0,
+        w: widget.width || 2,
+        h: widget.height || 2,
+        minW: 1,
+        minH: 1,
+      }))
 
-    // Grid event handlers
-    const onGridReady = (params) => {
-      gridApi.value = params.api
-      columnApi.value = params.columnApi
-      
-      // Auto-size columns
-      autoSize()
-    }
-
-    const onCellValueChanged = (event) => {
-      emit('layout-changed', {
-        row: event.rowIndex,
-        column: event.colDef.field,
-        newValue: event.newValue,
-        oldValue: event.oldValue
+      // Store widget data only for valid widgets
+      validWidgets.forEach((widget) => {
+        widgetData.value.set(widget.id, widget)
       })
     }
 
-    const onColumnResized = (event) => {
-      if (event.finished) {
-        emit('layout-changed', {
-          type: 'column-resize',
-          columns: event.columns.map(col => ({
-            field: col.colId,
-            width: col.actualWidth
-          }))
-        })
-      }
+    // Vue Grid Layout event handlers
+    const onLayoutCreated = (newLayout) => {
+      console.log('Layout created:', newLayout)
     }
 
-    const onRowDragEnd = (event) => {
-      emit('widget-moved', {
-        widgetId: event.node.data.id,
-        fromIndex: event.overIndex,
-        toIndex: event.overIndex
+    const onLayoutBeforeMount = (newLayout) => {
+      console.log('Layout before mount:', newLayout)
+    }
+
+    const onLayoutMounted = (newLayout) => {
+      console.log('Layout mounted:', newLayout)
+    }
+
+    const onLayoutReady = (newLayout) => {
+      console.log('Layout ready:', newLayout)
+    }
+
+    const onLayoutUpdated = (newLayout) => {
+      console.log('Layout updated:', newLayout)
+
+      // Prevent infinite loops by checking if layout actually changed
+      const hasChanges = newLayout.some((layoutItem) => {
+        const widget = props.widgets.find((w) => w.id === layoutItem.i)
+        return (
+          widget &&
+          (widget.x !== layoutItem.x ||
+            widget.y !== layoutItem.y ||
+            widget.width !== layoutItem.w ||
+            widget.height !== layoutItem.h)
+        )
       })
+
+      if (!hasChanges) {
+        return // No actual changes, prevent emit
+      }
+
+      // Update widget positions
+      const updatedWidgets = props.widgets.map((widget) => {
+        const layoutItem = newLayout.find((item) => item.i === widget.id)
+        if (layoutItem) {
+          return {
+            ...widget,
+            x: layoutItem.x,
+            y: layoutItem.y,
+            width: layoutItem.w,
+            height: layoutItem.h,
+          }
+        }
+        return widget
+      })
+
+      emit('layout-changed', updatedWidgets)
+    }
+
+    const onBreakpointChanged = (newBreakpoint, newLayout) => {
+      console.log('Breakpoint changed:', newBreakpoint, newLayout)
     }
 
     // Widget management methods
@@ -320,88 +247,83 @@ export default {
 
     const createWidget = (size) => {
       const sizeConfig = {
-        small: { width: 2, height: 2 },
-        medium: { width: 3, height: 3 },
-        large: { width: 4, height: 4 },
-        wide: { width: 6, height: 3 }
+        small: { w: 2, h: 2 },
+        medium: { w: 3, h: 3 },
+        large: { w: 4, h: 4 },
+        wide: { w: 6, h: 3 },
       }
 
       const position = findEmptyPosition(sizeConfig[size])
-      if (position) {
-        const widget = {
-          id: `widget_${Date.now()}`,
-          x: position.x,
-          y: position.y,
-          width: sizeConfig[size].width,
-          height: sizeConfig[size].height,
-          title: `Plot ${props.widgets.length + 1}`,
-          config: {
-            type: 'line',
-            color: '#1f77b4',
-            showLegend: true,
-            showGrid: true
-          },
-          data: []
-        }
+      const widgetId = `widget_${Date.now()}`
 
-        placeWidget(widget)
-        emit('widget-added', widget)
-      } else {
-        alert('No space available for this widget size')
+      const widget = {
+        id: widgetId,
+        x: position.x,
+        y: position.y,
+        width: sizeConfig[size].w,
+        height: sizeConfig[size].h,
+        title: `Plot ${props.widgets.length + 1}`,
+        config: {
+          type: 'line',
+          color: '#1f77b4',
+          showLegend: true,
+          showGrid: true,
+        },
+        data: [],
       }
-      
+
+      // Add to layout
+      layout.value.push({
+        i: widgetId,
+        x: position.x,
+        y: position.y,
+        w: sizeConfig[size].w,
+        h: sizeConfig[size].h,
+        minW: 1,
+        minH: 1,
+      })
+
+      // Store widget data
+      widgetData.value.set(widgetId, widget)
+
+      emit('widget-added', widget)
       closeSizeDialog()
     }
 
     const findEmptyPosition = (size) => {
-      for (let y = 0; y <= props.gridConfig.rows - size.height; y++) {
-        for (let x = 0; x <= props.gridConfig.columns - size.width; x++) {
-          if (isPositionEmpty(x, y, size.width, size.height)) {
+      // Simple algorithm to find empty position
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x <= props.gridConfig.columns - size.w; x++) {
+          if (isPositionEmpty(x, y, size.w, size.h)) {
             return { x, y }
           }
         }
       }
-      return null
+      return { x: 0, y: 0 } // Fallback
     }
 
     const isPositionEmpty = (x, y, width, height) => {
-      for (let row = y; row < y + height; row++) {
-        for (let col = x; col < x + width; col++) {
-          if (row >= rowData.value.length || col >= props.gridConfig.columns) {
-            return false
-          }
-          if (rowData.value[row][`col${col}`] !== null) {
-            return false
-          }
-        }
-      }
-      return true
-    }
-
-    const placeWidget = (widget) => {
-      for (let row = widget.y; row < widget.y + widget.height; row++) {
-        for (let col = widget.x; col < widget.x + widget.width; col++) {
-          if (row === widget.y && col === widget.x) {
-            rowData.value[row][`col${col}`] = widget
-          } else {
-            rowData.value[row][`col${col}`] = { occupied: true, parentId: widget.id }
-          }
-        }
-      }
+      return !layout.value.some((item) => {
+        return (
+          x < item.x + item.w && x + width > item.x && y < item.y + item.h && y + height > item.y
+        )
+      })
     }
 
     const removeWidget = (widgetId) => {
-      // Find and remove widget from grid
-      for (let row = 0; row < rowData.value.length; row++) {
-        for (let col = 0; col < props.gridConfig.columns; col++) {
-          const cell = rowData.value[row][`col${col}`]
-          if (cell && (cell.id === widgetId || cell.parentId === widgetId)) {
-            rowData.value[row][`col${col}`] = null
-          }
-        }
-      }
-      
+      // Remove from layout
+      layout.value = layout.value.filter((item) => item.i !== widgetId)
+
+      // Remove from widget data
+      widgetData.value.delete(widgetId)
+
       emit('widget-removed', widgetId)
+    }
+
+    const configureWidget = (widgetId) => {
+      console.log('Configure widget:', widgetId)
+      // Emit event or show configuration dialog
+      emit('widget-configure', widgetId)
     }
 
     const closeSizeDialog = () => {
@@ -409,116 +331,88 @@ export default {
       isAddingWidget.value = false
     }
 
-    // Layout management methods
-    const toggleGridLines = () => {
-      showGridLines.value = !showGridLines.value
-    }
-
-    const autoSize = () => {
-      if (gridApi.value) {
-        gridApi.value.sizeColumnsToFit()
+    // Helper methods for template
+    const getWidgetTitle = (widgetId) => {
+      if (!widgetId || typeof widgetId !== 'string') {
+        return 'Invalid Widget'
       }
+      const widget = widgetData.value.get(widgetId)
+      return widget?.title || 'Plot Widget'
     }
 
-    const saveLayout = () => {
-      const layout = {
-        widgets: props.widgets,
-        gridConfig: props.gridConfig,
-        timestamp: Date.now()
+    const getWidgetData = (widgetId) => {
+      if (!widgetId || typeof widgetId !== 'string') {
+        return []
       }
-      
-      // Save to localStorage
-      localStorage.setItem('dashboard-layout', JSON.stringify(layout))
-      emit('layout-saved', layout)
+      const widget = widgetData.value.get(widgetId)
+      return widget?.data || []
     }
 
-    const loadLayout = () => {
-      try {
-        const saved = localStorage.getItem('dashboard-layout')
-        if (saved) {
-          const layout = JSON.parse(saved)
-          emit('layout-loaded', layout)
-        }
-      } catch (error) {
-        console.error('Failed to load layout:', error)
+    const getWidgetConfig = (widgetId) => {
+      if (!widgetId || typeof widgetId !== 'string') {
+        return {}
       }
+      const widget = widgetData.value.get(widgetId)
+      return widget?.config || {}
     }
 
-    const resetLayout = () => {
-      // Clear all widgets
-      rowData.value.forEach(row => {
-        Object.keys(row).forEach(key => {
-          if (key !== 'id') {
-            row[key] = null
-          }
-        })
-      })
-      
-      emit('layout-changed', { type: 'reset' })
-    }
-
-    // Resize handling
-    const handleResize = () => {
-      if (gridApi.value) {
-        nextTick(() => {
-          gridApi.value.sizeColumnsToFit()
-        })
+    const onWidgetUpdated = (widgetId, data) => {
+      const widget = widgetData.value.get(widgetId)
+      if (widget) {
+        widget.data = data
+        emit('widget-updated', widgetId, data)
       }
     }
 
     // Watch for widgets changes
-    watch(() => props.widgets, (newWidgets) => {
-      // Update grid when widgets change
-      initializeGrid()
-      newWidgets.forEach(widget => {
-        placeWidget(widget)
-      })
-    }, { deep: true })
+    watch(
+      () => props.widgets,
+      (newWidgets, oldWidgets) => {
+        // Only update if widgets actually changed
+        if (JSON.stringify(newWidgets) !== JSON.stringify(oldWidgets)) {
+          updateLayoutFromWidgets()
+        }
+      },
+      { deep: true },
+    )
 
     // Lifecycle
     onMounted(() => {
-      initializeGrid()
-      window.addEventListener('resize', handleResize)
-    })
-
-    onUnmounted(() => {
-      window.removeEventListener('resize', handleResize)
+      updateLayoutFromWidgets()
     })
 
     return {
       // Refs
       gridContainer,
-      agGrid,
-      
+
       // Reactive state
-      showGridLines,
       showSizeDialog,
       isAddingWidget,
-      
-      // Grid config
-      columnDefs,
-      rowData,
-      gridOptions,
-      defaultColDef,
-      
+      layout,
+
       // Methods
       addWidget,
       createWidget,
       removeWidget,
+      configureWidget,
       closeSizeDialog,
-      toggleGridLines,
-      autoSize,
-      saveLayout,
-      loadLayout,
-      resetLayout,
-      
-      // Event handlers
-      onGridReady,
-      onCellValueChanged,
-      onColumnResized,
-      onRowDragEnd
+      getWidgetTitle,
+      getWidgetData,
+      getWidgetConfig,
+      onWidgetUpdated,
+
+      // Vue Grid Layout event handlers
+      onLayoutCreated,
+      onLayoutBeforeMount,
+      onLayoutMounted,
+      onLayoutReady,
+      onLayoutUpdated,
+      onBreakpointChanged,
+
+      // Computed property
+      filteredLayout,
     }
-  }
+  },
 }
 </script>
 
@@ -538,7 +432,7 @@ export default {
   padding: 12px 16px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 100;
 }
 
@@ -591,18 +485,58 @@ export default {
   font-size: 16px;
 }
 
-.ag-grid-container {
+.vue-grid-container {
   flex: 1;
   position: relative;
   overflow: hidden;
+  padding: 10px;
 }
 
-.dashboard-grid {
-  width: 100%;
+.vue-grid-layout {
+  background: transparent;
+}
+
+.vue-grid-item {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  touch-action: none;
+}
+
+.vue-grid-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.vue-grid-item.vue-grid-item--dragging {
+  opacity: 0.8;
+  z-index: 1000;
+}
+
+.vue-grid-item.vue-grid-item--resizing {
+  opacity: 0.8;
+}
+
+.vue-resizable-handle {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.vue-grid-item:hover .vue-resizable-handle {
+  opacity: 1;
+}
+
+.widget-wrapper {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.show-grid-lines .ag-cell {
+.show-grid-lines .vue-grid-item {
   border: 1px dashed #ddd !important;
 }
 
@@ -610,14 +544,14 @@ export default {
   background: white;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   overflow: hidden;
 }
 
 .widget-cell:hover {
   border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
 .widget-header {
@@ -676,7 +610,7 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -687,7 +621,7 @@ export default {
   background: white;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: 500px;
   width: 90%;
 }

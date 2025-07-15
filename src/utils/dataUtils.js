@@ -3,12 +3,12 @@
  * Handles data transformation, validation, generation, and format conversion
  */
 
-import { 
-  createPoint, 
-  createDataset, 
+import {
+  createPoint,
+  createDataset,
   DATA_SOURCE_TYPES,
   AXIS_SCALE_TYPES,
-  validateDataset 
+  validateDataset,
 } from '../types/plotTypes.js'
 
 // ============================================================================
@@ -28,24 +28,17 @@ export const sanitizeDataPoints = (data) => {
     .map((point, index) => {
       // Handle different input formats
       if (Array.isArray(point)) {
-        return createPoint(
-          parseFloat(point[0]) || 0,
-          parseFloat(point[1]) || 0,
-          { originalIndex: index }
-        )
+        return createPoint(parseFloat(point[0]) || 0, parseFloat(point[1]) || 0, {
+          originalIndex: index,
+        })
       } else if (typeof point === 'object' && point !== null) {
-        return createPoint(
-          parseFloat(point.x) || 0,
-          parseFloat(point.y) || 0,
-          { ...point.metadata, originalIndex: index }
-        )
+        return createPoint(parseFloat(point.x) || 0, parseFloat(point.y) || 0, {
+          ...point.metadata,
+          originalIndex: index,
+        })
       } else {
         // Assume it's a y-value with index as x
-        return createPoint(
-          index,
-          parseFloat(point) || 0,
-          { originalIndex: index }
-        )
+        return createPoint(index, parseFloat(point) || 0, { originalIndex: index })
       }
     })
     .filter((point) => {
@@ -60,7 +53,7 @@ export const sanitizeDataPoints = (data) => {
 export const removeOutliers = (data, factor = 1.5) => {
   if (data.length < 4) return data
 
-  const yValues = data.map(point => point.y).sort((a, b) => a - b)
+  const yValues = data.map((point) => point.y).sort((a, b) => a - b)
   const q1Index = Math.floor(yValues.length * 0.25)
   const q3Index = Math.floor(yValues.length * 0.75)
   const q1 = yValues[q1Index]
@@ -69,7 +62,7 @@ export const removeOutliers = (data, factor = 1.5) => {
   const lowerBound = q1 - factor * iqr
   const upperBound = q3 + factor * iqr
 
-  return data.filter(point => point.y >= lowerBound && point.y <= upperBound)
+  return data.filter((point) => point.y >= lowerBound && point.y <= upperBound)
 }
 
 /**
@@ -83,7 +76,7 @@ export const validateDataBounds = (data, options = {}) => {
     minY = -Infinity,
     maxY = Infinity,
     removeOutliers: shouldRemoveOutliers = false,
-    outlierFactor = 1.5
+    outlierFactor = 1.5,
   } = options
 
   let processedData = [...data]
@@ -94,9 +87,8 @@ export const validateDataBounds = (data, options = {}) => {
   }
 
   // Apply bounds filtering
-  processedData = processedData.filter(point => 
-    point.x >= minX && point.x <= maxX && 
-    point.y >= minY && point.y <= maxY
+  processedData = processedData.filter(
+    (point) => point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY,
   )
 
   // Limit number of points for performance
@@ -122,10 +114,10 @@ export const transformData = (data, transformConfig = {}) => {
     xOffset = 0,
     yOffset = 0,
     xFunction = null,
-    yFunction = null
+    yFunction = null,
   } = transformConfig
 
-  return data.map(point => {
+  return data.map((point) => {
     let x = point.x
     let y = point.y
 
@@ -138,8 +130,8 @@ export const transformData = (data, transformConfig = {}) => {
     }
 
     // Apply scale and offset
-    x = (x * xScale) + xOffset
-    y = (y * yScale) + yOffset
+    x = x * xScale + xOffset
+    y = y * yScale + yOffset
 
     return createPoint(x, y, point.metadata)
   })
@@ -153,27 +145,29 @@ export const convertToLogScale = (data, scaleType = AXIS_SCALE_TYPES.LINEAR) => 
     return data
   }
 
-  return data.map(point => {
-    let x = point.x
-    let y = point.y
+  return data
+    .map((point) => {
+      let x = point.x
+      let y = point.y
 
-    // Handle different scale types
-    switch (scaleType) {
-      case AXIS_SCALE_TYPES.LOG:
-      case AXIS_SCALE_TYPES.SEMI_LOG_Y:
-        y = y > 0 ? Math.log10(y) : NaN
-        break
-      case AXIS_SCALE_TYPES.SEMI_LOG_X:
-        x = x > 0 ? Math.log10(x) : NaN
-        break
-      case AXIS_SCALE_TYPES.LOG_LOG:
-        x = x > 0 ? Math.log10(x) : NaN
-        y = y > 0 ? Math.log10(y) : NaN
-        break
-    }
+      // Handle different scale types
+      switch (scaleType) {
+        case AXIS_SCALE_TYPES.LOG:
+        case AXIS_SCALE_TYPES.SEMI_LOG_Y:
+          y = y > 0 ? Math.log10(y) : NaN
+          break
+        case AXIS_SCALE_TYPES.SEMI_LOG_X:
+          x = x > 0 ? Math.log10(x) : NaN
+          break
+        case AXIS_SCALE_TYPES.LOG_LOG:
+          x = x > 0 ? Math.log10(x) : NaN
+          y = y > 0 ? Math.log10(y) : NaN
+          break
+      }
 
-    return createPoint(x, y, point.metadata)
-  }).filter(point => !isNaN(point.x) && !isNaN(point.y))
+      return createPoint(x, y, point.metadata)
+    })
+    .filter((point) => !isNaN(point.x) && !isNaN(point.y))
 }
 
 /**
@@ -183,24 +177,24 @@ export const interpolateData = (data, method = 'linear') => {
   if (data.length < 2) return data
 
   const result = []
-  
+
   for (let i = 0; i < data.length; i++) {
     result.push(data[i])
-    
+
     // Check if we need to interpolate to the next point
     if (i < data.length - 1) {
       const current = data[i]
       const next = data[i + 1]
       const xGap = next.x - current.x
-      
+
       // If there's a significant gap, add interpolated points
       if (xGap > 1) {
         const steps = Math.min(Math.floor(xGap), 10) // Limit interpolation points
-        
+
         for (let step = 1; step < steps; step++) {
           const ratio = step / steps
           let interpY
-          
+
           switch (method) {
             case 'linear':
               interpY = current.y + (next.y - current.y) * ratio
@@ -212,17 +206,13 @@ export const interpolateData = (data, method = 'linear') => {
             default:
               interpY = current.y + (next.y - current.y) * ratio
           }
-          
-          result.push(createPoint(
-            current.x + xGap * ratio,
-            interpY,
-            { interpolated: true }
-          ))
+
+          result.push(createPoint(current.x + xGap * ratio, interpY, { interpolated: true }))
         }
       }
     }
   }
-  
+
   return result
 }
 
@@ -239,14 +229,10 @@ export const smoothData = (data, windowSize = 5) => {
     const start = Math.max(0, i - halfWindow)
     const end = Math.min(data.length, i + halfWindow + 1)
     const window = data.slice(start, end)
-    
+
     const avgY = window.reduce((sum, point) => sum + point.y, 0) / window.length
-    
-    result.push(createPoint(
-      data[i].x,
-      avgY,
-      { ...data[i].metadata, smoothed: true }
-    ))
+
+    result.push(createPoint(data[i].x, avgY, { ...data[i].metadata, smoothed: true }))
   }
 
   return result
@@ -264,12 +250,12 @@ export const calculateStatistics = (data) => {
     return {
       count: 0,
       xStats: null,
-      yStats: null
+      yStats: null,
     }
   }
 
-  const xValues = data.map(point => point.x)
-  const yValues = data.map(point => point.y)
+  const xValues = data.map((point) => point.x)
+  const yValues = data.map((point) => point.y)
 
   const calculateStats = (values) => {
     const sorted = [...values].sort((a, b) => a - b)
@@ -286,14 +272,14 @@ export const calculateStatistics = (data) => {
       stdDev,
       variance,
       sum,
-      range: Math.max(...values) - Math.min(...values)
+      range: Math.max(...values) - Math.min(...values),
     }
   }
 
   return {
     count: data.length,
     xStats: calculateStats(xValues),
-    yStats: calculateStats(yValues)
+    yStats: calculateStats(yValues),
   }
 }
 
@@ -301,11 +287,7 @@ export const calculateStatistics = (data) => {
  * Find peaks in data
  */
 export const findPeaks = (data, options = {}) => {
-  const { 
-    minHeight = -Infinity, 
-    minDistance = 1,
-    threshold = 0.1 
-  } = options
+  const { minHeight = -Infinity, minDistance = 1, threshold = 0.1 } = options
 
   const peaks = []
 
@@ -317,21 +299,19 @@ export const findPeaks = (data, options = {}) => {
     // Check if it's a local maximum
     if (current.y > prev.y && current.y > next.y && current.y >= minHeight) {
       // Check minimum distance from other peaks
-      const tooClose = peaks.some(peak => 
-        Math.abs(peak.x - current.x) < minDistance
-      )
+      const tooClose = peaks.some((peak) => Math.abs(peak.x - current.x) < minDistance)
 
       if (!tooClose) {
         peaks.push({
           ...current,
           peakIndex: i,
-          prominence: Math.min(current.y - prev.y, current.y - next.y)
+          prominence: Math.min(current.y - prev.y, current.y - next.y),
         })
       }
     }
   }
 
-  return peaks.filter(peak => peak.prominence >= threshold)
+  return peaks.filter((peak) => peak.prominence >= threshold)
 }
 
 /**
@@ -343,8 +323,8 @@ export const calculateCorrelation = (data1, data2) => {
   }
 
   const n = data1.length
-  const x = data1.map(point => point.y)
-  const y = data2.map(point => point.y)
+  const x = data1.map((point) => point.y)
+  const y = data2.map((point) => point.y)
 
   const sumX = x.reduce((acc, val) => acc + val, 0)
   const sumY = y.reduce((acc, val) => acc + val, 0)
@@ -373,7 +353,7 @@ export const generateSampleData = (type = 'sine', count = 100, options = {}) => 
     frequency = 1,
     phase = 0,
     noise = 0,
-    offset = 0
+    offset = 0,
   } = options
 
   const data = []
@@ -407,7 +387,10 @@ export const generateSampleData = (type = 'sine', count = 100, options = {}) => 
         break
       case 'normal':
         // Box-Muller transform for normal distribution
-        y = amplitude * (Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random())) + offset
+        y =
+          amplitude *
+            (Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random())) +
+          offset
         break
       default:
         y = 0
@@ -435,7 +418,7 @@ export const generateTimeSeriesData = (options = {}) => {
     baseValue = 100,
     trend = 0,
     seasonality = { amplitude: 10, period: 24 * 60 * 60 * 1000 }, // Daily seasonality
-    noise = 5
+    noise = 5,
   } = options
 
   const data = []
@@ -445,25 +428,27 @@ export const generateTimeSeriesData = (options = {}) => {
   for (let i = 0; i <= pointCount; i++) {
     const time = startTime.getTime() + i * interval
     const x = time / 1000 // Convert to seconds for plotting
-    
+
     // Base trend
     let y = baseValue + trend * i
-    
+
     // Add seasonality
     if (seasonality.amplitude > 0) {
       const seasonalPhase = (2 * Math.PI * time) / seasonality.period
       y += seasonality.amplitude * Math.sin(seasonalPhase)
     }
-    
+
     // Add noise
     if (noise > 0) {
       y += (Math.random() - 0.5) * noise
     }
 
-    data.push(createPoint(x, y, { 
-      timestamp: time,
-      date: new Date(time).toISOString()
-    }))
+    data.push(
+      createPoint(x, y, {
+        timestamp: time,
+        date: new Date(time).toISOString(),
+      }),
+    )
   }
 
   return data
@@ -473,12 +458,7 @@ export const generateTimeSeriesData = (options = {}) => {
  * Generate real-time data point
  */
 export const generateRealtimePoint = (previousPoint, options = {}) => {
-  const {
-    volatility = 0.1,
-    trend = 0,
-    meanReversion = 0.05,
-    targetValue = 100
-  } = options
+  const { volatility = 0.1, trend = 0, meanReversion = 0.05, targetValue = 100 } = options
 
   const currentTime = Date.now() / 1000
   let newY
@@ -486,13 +466,13 @@ export const generateRealtimePoint = (previousPoint, options = {}) => {
   if (previousPoint) {
     // Use previous value as starting point
     newY = previousPoint.y
-    
+
     // Add trend
     newY += trend
-    
+
     // Add mean reversion
     newY += (targetValue - newY) * meanReversion
-    
+
     // Add random walk
     newY += (Math.random() - 0.5) * volatility
   } else {
@@ -502,7 +482,7 @@ export const generateRealtimePoint = (previousPoint, options = {}) => {
 
   return createPoint(currentTime, newY, {
     timestamp: Date.now(),
-    realtime: true
+    realtime: true,
   })
 }
 
@@ -514,13 +494,7 @@ export const generateRealtimePoint = (previousPoint, options = {}) => {
  * Parse CSV data
  */
 export const parseCSV = (csvText, options = {}) => {
-  const {
-    delimiter = ',',
-    hasHeaders = true,
-    xColumn = 0,
-    yColumn = 1,
-    skipRows = 0
-  } = options
+  const { delimiter = ',', hasHeaders = true, xColumn = 0, yColumn = 1, skipRows = 0 } = options
 
   const lines = csvText.trim().split('\n').slice(skipRows)
   if (lines.length === 0) return []
@@ -529,25 +503,27 @@ export const parseCSV = (csvText, options = {}) => {
   let headers = []
 
   if (hasHeaders) {
-    headers = lines[0].split(delimiter).map(h => h.trim())
+    headers = lines[0].split(delimiter).map((h) => h.trim())
     startIndex = 1
   }
 
   const data = []
 
   for (let i = startIndex; i < lines.length; i++) {
-    const values = lines[i].split(delimiter).map(v => v.trim())
-    
+    const values = lines[i].split(delimiter).map((v) => v.trim())
+
     if (values.length > Math.max(xColumn, yColumn)) {
       const x = parseFloat(values[xColumn])
       const y = parseFloat(values[yColumn])
-      
+
       if (!isNaN(x) && !isNaN(y)) {
-        data.push(createPoint(x, y, {
-          row: i,
-          headers,
-          rawValues: values
-        }))
+        data.push(
+          createPoint(x, y, {
+            row: i,
+            headers,
+            rawValues: values,
+          }),
+        )
       }
     }
   }
@@ -562,12 +538,12 @@ export const dataToCSV = (data, includeHeaders = true) => {
   if (!data || data.length === 0) return ''
 
   const rows = []
-  
+
   if (includeHeaders) {
     rows.push('x,y')
   }
 
-  data.forEach(point => {
+  data.forEach((point) => {
     rows.push(`${point.x},${point.y}`)
   })
 
@@ -584,12 +560,14 @@ export const parseJSON = (jsonText, options = {}) => {
     const parsed = JSON.parse(jsonText)
     const array = Array.isArray(parsed) ? parsed : [parsed]
 
-    return array.map((item, index) => {
-      const x = item[xProperty] !== undefined ? parseFloat(item[xProperty]) : index
-      const y = item[yProperty] !== undefined ? parseFloat(item[yProperty]) : 0
+    return array
+      .map((item, index) => {
+        const x = item[xProperty] !== undefined ? parseFloat(item[xProperty]) : index
+        const y = item[yProperty] !== undefined ? parseFloat(item[yProperty]) : 0
 
-      return createPoint(x, y, { ...item, originalIndex: index })
-    }).filter(point => !isNaN(point.x) && !isNaN(point.y))
+        return createPoint(x, y, { ...item, originalIndex: index })
+      })
+      .filter((point) => !isNaN(point.x) && !isNaN(point.y))
   } catch (error) {
     console.error('Error parsing JSON:', error)
     return []
@@ -602,7 +580,7 @@ export const parseJSON = (jsonText, options = {}) => {
 export const dataToJSON = (data, format = 'object') => {
   if (!data || data.length === 0) return '[]'
 
-  const converted = data.map(point => {
+  const converted = data.map((point) => {
     switch (format) {
       case 'array':
         return [point.x, point.y]
@@ -662,9 +640,10 @@ export const dataCache = new DataCache()
  * Generate cache key for data operations
  */
 export const generateCacheKey = (operation, data, options = {}) => {
-  const dataHash = data.length > 0 ? 
-    `${data[0].x}_${data[0].y}_${data[data.length - 1].x}_${data[data.length - 1].y}_${data.length}` : 
-    'empty'
+  const dataHash =
+    data.length > 0
+      ? `${data[0].x}_${data[0].y}_${data[data.length - 1].x}_${data[data.length - 1].y}_${data.length}`
+      : 'empty'
   const optionsHash = JSON.stringify(options)
   return `${operation}_${dataHash}_${optionsHash}`.replace(/[^\w]/g, '_')
 }
@@ -676,18 +655,18 @@ export const parseFile = async (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     const extension = file.name.split('.').pop().toLowerCase()
-    
+
     reader.onload = (event) => {
       try {
         const content = event.target.result
         let data = []
-        
+
         switch (extension) {
           case 'csv':
           case 'tsv':
             data = parseCSV(content, {
               delimiter: extension === 'tsv' ? '\t' : ',',
-              hasHeaders: true
+              hasHeaders: true,
             })
             break
           case 'json':
@@ -708,22 +687,22 @@ export const parseFile = async (file) => {
             reject(new Error(`Unsupported file format: ${extension}`))
             return
         }
-        
+
         if (data.length === 0) {
           reject(new Error('No valid data found in file'))
           return
         }
-        
+
         resolve(sanitizeDataPoints(data))
       } catch (error) {
         reject(new Error(`Failed to parse file: ${error.message}`))
       }
     }
-    
+
     reader.onerror = () => {
       reject(new Error('Failed to read file'))
     }
-    
+
     reader.readAsText(file)
   })
 }
@@ -735,7 +714,7 @@ export const exportData = (data, format = 'csv', filename = 'data') => {
   let content = ''
   let mimeType = 'text/plain'
   let extension = 'txt'
-  
+
   switch (format.toLowerCase()) {
     case 'csv':
       content = dataToCSV(data, true)
@@ -757,7 +736,7 @@ export const exportData = (data, format = 'csv', filename = 'data') => {
       mimeType = 'text/csv'
       extension = 'csv'
   }
-  
+
   // Create and trigger download
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -768,7 +747,7 @@ export const exportData = (data, format = 'csv', filename = 'data') => {
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
-  
+
   return content
 }
 
@@ -781,23 +760,23 @@ export default {
   sanitizeDataPoints,
   removeOutliers,
   validateDataBounds,
-  
+
   // Transformation
   transformData,
   convertToLogScale,
   interpolateData,
   smoothData,
-  
+
   // Analysis
   calculateStatistics,
   findPeaks,
   calculateCorrelation,
-  
+
   // Generation
   generateSampleData,
   generateTimeSeriesData,
   generateRealtimePoint,
-  
+
   // Format conversion
   parseCSV,
   dataToCSV,
@@ -805,8 +784,8 @@ export default {
   dataToJSON,
   parseFile,
   exportData,
-  
+
   // Caching
   dataCache,
-  generateCacheKey
+  generateCacheKey,
 }

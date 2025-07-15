@@ -344,6 +344,32 @@ export function usePlotData(widgetId) {
     }
   })
 
+  // Generate sample data for testing
+  function generateSampleData(type = 'sine-wave', points = 100) {
+    try {
+      const dataset = sampleData[type]
+      if (!dataset) {
+        console.warn(`Sample dataset '${type}' not found, using sine-wave`)
+        const fallbackDataset = sampleData['sine-wave']
+        const rawData = fallbackDataset.generator()
+        return rawData.x.map((x, i) => ({ x, y: rawData.y[i] }))
+      }
+      
+      const rawData = dataset.generator()
+      return rawData.x.map((x, i) => ({ x, y: rawData.y[i] }))
+    } catch (error) {
+      console.error('Error generating sample data:', error)
+      // Return simple sine wave as fallback
+      const data = []
+      for (let i = 0; i < points; i++) {
+        const x = (i / points) * 4 * Math.PI
+        const y = Math.sin(x)
+        data.push({ x, y })
+      }
+      return data
+    }
+  }
+
   // Cleanup
   function cleanup() {
     stopRealTimeData()
@@ -390,6 +416,7 @@ export function usePlotData(widgetId) {
     // Utilities
     getDataStatistics,
     exportData,
+    generateSampleData,
     cleanup
   }
 }

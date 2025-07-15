@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { AgGridReact } from 'ag-grid-react'
+import 'ag-grid-community/styles/ag-grid.css'
+import 'ag-grid-community/styles/ag-theme-alpine.css'
 
 // Default line colors for multiple datasets
 export const DEFAULT_LINE_COLORS = [
@@ -16,18 +16,18 @@ export const DEFAULT_LINE_COLORS = [
   '#607D8B', // Blue Grey
   '#E91E63', // Pink
   '#3F51B5', // Indigo
-  '#009688'  // Teal
-];
+  '#009688', // Teal
+]
 
 // Get line color by index, cycling through the default colors
 export const getLineColor = (index) => {
-  return DEFAULT_LINE_COLORS[index % DEFAULT_LINE_COLORS.length];
-};
+  return DEFAULT_LINE_COLORS[index % DEFAULT_LINE_COLORS.length]
+}
 
 // Utility functions
 export const generateId = (prefix = 'id') => {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
 
 const createDefaultConfig = () => ({
   backgroundColor: { r: 0.1, g: 0.1, b: 0.1, a: 1.0 },
@@ -39,203 +39,203 @@ const createDefaultConfig = () => ({
   logScale: false,
   title: '',
   xLabel: 'X',
-  yLabel: 'Y'
-});
+  yLabel: 'Y',
+})
 
 const generateSampleData = (type = 'sine', points = 1000) => {
-  const data = [];
+  const data = []
   for (let i = 0; i < points; i++) {
-    const x = (i / points) * 4 * Math.PI;
-    let y;
-    
+    const x = (i / points) * 4 * Math.PI
+    let y
+
     switch (type) {
       case 'sine':
-        y = Math.sin(x);
-        break;
+        y = Math.sin(x)
+        break
       case 'cosine':
-        y = Math.cos(x);
-        break;
+        y = Math.cos(x)
+        break
       case 'tangent':
-        y = Math.tan(x * 0.1);
-        break;
+        y = Math.tan(x * 0.1)
+        break
       case 'exponential':
-        y = Math.exp(x * 0.1);
-        break;
+        y = Math.exp(x * 0.1)
+        break
       case 'logarithmic':
-        y = Math.log(x + 1);
-        break;
+        y = Math.log(x + 1)
+        break
       case 'random':
-        y = Math.random() * 2 - 1;
-        break;
+        y = Math.random() * 2 - 1
+        break
       default:
-        y = Math.sin(x);
+        y = Math.sin(x)
     }
-    
-    data.push({ x, y });
-  }
-  return data;
-};
 
-// WebGL Plot Component
+    data.push({ x, y })
+  }
+  return data
+}
+
+// Plotly Plot Component
 const WebGLPlot = ({ data, config, width, height, title }) => {
-  const canvasRef = useRef(null);
-  const plotRef = useRef(null);
-  const animationFrameRef = useRef(null);
+  const canvasRef = useRef(null)
+  const plotRef = useRef(null)
+  const animationFrameRef = useRef(null)
 
   const initializePlot = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const canvas = canvasRef.current
+    if (!canvas) return
 
     // Set canvas size
-    const pixelRatio = window.devicePixelRatio || 1;
-    canvas.width = width * pixelRatio;
-    canvas.height = height * pixelRatio;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    const pixelRatio = window.devicePixelRatio || 1
+    canvas.width = width * pixelRatio
+    canvas.height = height * pixelRatio
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
 
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
     if (!gl) {
-      console.error('WebGL not supported');
-      return;
+      console.error('WebGL not supported')
+      return
     }
 
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    
+    gl.viewport(0, 0, canvas.width, canvas.height)
+
     // Simple WebGL rendering
     plotRef.current = {
       gl,
       canvas,
       data: data || [],
-      config: config || createDefaultConfig()
-    };
+      config: config || createDefaultConfig(),
+    }
 
-    renderPlot();
-  }, [data, config, width, height]);
+    renderPlot()
+  }, [data, config, width, height])
 
   const renderPlot = useCallback(() => {
-    const plot = plotRef.current;
-    if (!plot || !plot.gl) return;
+    const plot = plotRef.current
+    if (!plot || !plot.gl) return
 
-    const { gl } = plot;
-    const bgColor = plot.config.backgroundColor;
-    
-    gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    const { gl } = plot
+    const bgColor = plot.config.backgroundColor
 
-    // Simple line rendering (placeholder for actual WebGL plot implementation)
+    gl.clearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+
+    // Simple line rendering (placeholder for actual Plotly plot implementation)
     if (plot.data && plot.data.length > 0) {
-      // This would contain the actual WebGL line rendering code
+      // This would contain the actual Plotly line rendering code
       // For now, we'll use a simple 2D canvas overlay for demonstration
-      renderSimplePlot();
+      renderSimplePlot()
     }
-  }, []);
+  }, [])
 
   const renderSimplePlot = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !data) return;
+    const canvas = canvasRef.current
+    if (!canvas || !data) return
 
     // Create a 2D overlay for demonstration
-    const overlay = document.getElementById(`overlay-${canvas.id}`);
-    let ctx;
-    
+    const overlay = document.getElementById(`overlay-${canvas.id}`)
+    let ctx
+
     if (!overlay) {
-      const overlayCanvas = document.createElement('canvas');
-      overlayCanvas.id = `overlay-${canvas.id}`;
-      overlayCanvas.width = canvas.width;
-      overlayCanvas.height = canvas.height;
-      overlayCanvas.style.position = 'absolute';
-      overlayCanvas.style.top = '0';
-      overlayCanvas.style.left = '0';
-      overlayCanvas.style.width = canvas.style.width;
-      overlayCanvas.style.height = canvas.style.height;
-      overlayCanvas.style.pointerEvents = 'none';
-      canvas.parentNode.style.position = 'relative';
-      canvas.parentNode.appendChild(overlayCanvas);
-      ctx = overlayCanvas.getContext('2d');
+      const overlayCanvas = document.createElement('canvas')
+      overlayCanvas.id = `overlay-${canvas.id}`
+      overlayCanvas.width = canvas.width
+      overlayCanvas.height = canvas.height
+      overlayCanvas.style.position = 'absolute'
+      overlayCanvas.style.top = '0'
+      overlayCanvas.style.left = '0'
+      overlayCanvas.style.width = canvas.style.width
+      overlayCanvas.style.height = canvas.style.height
+      overlayCanvas.style.pointerEvents = 'none'
+      canvas.parentNode.style.position = 'relative'
+      canvas.parentNode.appendChild(overlayCanvas)
+      ctx = overlayCanvas.getContext('2d')
     } else {
-      ctx = overlay.getContext('2d');
+      ctx = overlay.getContext('2d')
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    if (data.length === 0) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    if (data.length === 0) return
 
     // Find data bounds
-    const xMin = Math.min(...data.map(d => d.x));
-    const xMax = Math.max(...data.map(d => d.x));
-    const yMin = Math.min(...data.map(d => d.y));
-    const yMax = Math.max(...data.map(d => d.y));
+    const xMin = Math.min(...data.map((d) => d.x))
+    const xMax = Math.max(...data.map((d) => d.x))
+    const yMin = Math.min(...data.map((d) => d.y))
+    const yMax = Math.max(...data.map((d) => d.y))
 
-    const padding = 40;
-    const plotWidth = canvas.width - 2 * padding;
-    const plotHeight = canvas.height - 2 * padding;
+    const padding = 40
+    const plotWidth = canvas.width - 2 * padding
+    const plotHeight = canvas.height - 2 * padding
 
     // Draw grid
     if (config.showGrid) {
-      ctx.strokeStyle = `rgba(${config.gridColor.r * 255}, ${config.gridColor.g * 255}, ${config.gridColor.b * 255}, ${config.gridColor.a})`;
-      ctx.lineWidth = 1;
-      
+      ctx.strokeStyle = `rgba(${config.gridColor.r * 255}, ${config.gridColor.g * 255}, ${config.gridColor.b * 255}, ${config.gridColor.a})`
+      ctx.lineWidth = 1
+
       // Vertical grid lines
       for (let i = 0; i <= 10; i++) {
-        const x = padding + (i / 10) * plotWidth;
-        ctx.beginPath();
-        ctx.moveTo(x, padding);
-        ctx.lineTo(x, padding + plotHeight);
-        ctx.stroke();
+        const x = padding + (i / 10) * plotWidth
+        ctx.beginPath()
+        ctx.moveTo(x, padding)
+        ctx.lineTo(x, padding + plotHeight)
+        ctx.stroke()
       }
-      
+
       // Horizontal grid lines
       for (let i = 0; i <= 10; i++) {
-        const y = padding + (i / 10) * plotHeight;
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(padding + plotWidth, y);
-        ctx.stroke();
+        const y = padding + (i / 10) * plotHeight
+        ctx.beginPath()
+        ctx.moveTo(padding, y)
+        ctx.lineTo(padding + plotWidth, y)
+        ctx.stroke()
       }
     }
 
     // Draw data line
-    ctx.strokeStyle = `rgba(${config.lineColor.r * 255}, ${config.lineColor.g * 255}, ${config.lineColor.b * 255}, ${config.lineColor.a})`;
-    ctx.lineWidth = config.lineWidth;
-    ctx.beginPath();
+    ctx.strokeStyle = `rgba(${config.lineColor.r * 255}, ${config.lineColor.g * 255}, ${config.lineColor.b * 255}, ${config.lineColor.a})`
+    ctx.lineWidth = config.lineWidth
+    ctx.beginPath()
 
     data.forEach((point, index) => {
-      const x = padding + ((point.x - xMin) / (xMax - xMin)) * plotWidth;
-      let y = padding + plotHeight - ((point.y - yMin) / (yMax - yMin)) * plotHeight;
-      
+      const x = padding + ((point.x - xMin) / (xMax - xMin)) * plotWidth
+      let y = padding + plotHeight - ((point.y - yMin) / (yMax - yMin)) * plotHeight
+
       if (config.logScale && point.y > 0) {
-        const logY = Math.log10(point.y);
-        const logYMin = Math.log10(Math.max(yMin, 0.001));
-        const logYMax = Math.log10(yMax);
-        y = padding + plotHeight - ((logY - logYMin) / (logYMax - logYMin)) * plotHeight;
+        const logY = Math.log10(point.y)
+        const logYMin = Math.log10(Math.max(yMin, 0.001))
+        const logYMax = Math.log10(yMax)
+        y = padding + plotHeight - ((logY - logYMin) / (logYMax - logYMin)) * plotHeight
       }
 
       if (index === 0) {
-        ctx.moveTo(x, y);
+        ctx.moveTo(x, y)
       } else {
-        ctx.lineTo(x, y);
+        ctx.lineTo(x, y)
       }
-    });
+    })
 
-    ctx.stroke();
-  };
+    ctx.stroke()
+  }
 
   useEffect(() => {
-    initializePlot();
-    
+    initializePlot()
+
     const animate = () => {
-      renderPlot();
-      animationFrameRef.current = requestAnimationFrame(animate);
-    };
-    
-    animate();
+      renderPlot()
+      animationFrameRef.current = requestAnimationFrame(animate)
+    }
+
+    animate()
 
     return () => {
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+        cancelAnimationFrame(animationFrameRef.current)
       }
-    };
-  }, [initializePlot, renderPlot]);
+    }
+  }, [initializePlot, renderPlot])
 
   return (
     <div className="webgl-plot-container">
@@ -243,39 +243,39 @@ const WebGLPlot = ({ data, config, width, height, title }) => {
       <canvas
         ref={canvasRef}
         id={generateId('canvas')}
-        style={{ 
+        style={{
           border: '1px solid #ccc',
           borderRadius: '4px',
-          backgroundColor: '#1a1a1a'
+          backgroundColor: '#1a1a1a',
         }}
       />
     </div>
-  );
-};
+  )
+}
 
 // Plot Widget Component
 const PlotWidget = ({ widget, onConfigChange, onRemove, onDataChange }) => {
-  const [showConfig, setShowConfig] = useState(false);
-  const [localConfig, setLocalConfig] = useState(widget.config);
+  const [showConfig, setShowConfig] = useState(false)
+  const [localConfig, setLocalConfig] = useState(widget.config)
 
-  const dataTypes = ['sine', 'cosine', 'tangent', 'exponential', 'logarithmic', 'random'];
+  const dataTypes = ['sine', 'cosine', 'tangent', 'exponential', 'logarithmic', 'random']
 
   const handleConfigChange = (key, value) => {
-    const newConfig = { ...localConfig, [key]: value };
-    setLocalConfig(newConfig);
-    onConfigChange(newConfig);
-  };
+    const newConfig = { ...localConfig, [key]: value }
+    setLocalConfig(newConfig)
+    onConfigChange(newConfig)
+  }
 
   const handleColorChange = (colorKey, component, value) => {
-    const newColor = { ...localConfig[colorKey] };
-    newColor[component] = parseFloat(value);
-    handleConfigChange(colorKey, newColor);
-  };
+    const newColor = { ...localConfig[colorKey] }
+    newColor[component] = parseFloat(value)
+    handleConfigChange(colorKey, newColor)
+  }
 
   const generateNewData = (type) => {
-    const newData = generateSampleData(type);
-    onDataChange(newData);
-  };
+    const newData = generateSampleData(type)
+    onDataChange(newData)
+  }
 
   return (
     <div className="plot-widget">
@@ -295,11 +295,7 @@ const PlotWidget = ({ widget, onConfigChange, onRemove, onDataChange }) => {
           >
             ⚙️
           </button>
-          <button
-            onClick={() => onRemove(widget.id)}
-            className="remove-btn"
-            title="Remove Widget"
-          >
+          <button onClick={() => onRemove(widget.id)} className="remove-btn" title="Remove Widget">
             ✕
           </button>
         </div>
@@ -309,12 +305,9 @@ const PlotWidget = ({ widget, onConfigChange, onRemove, onDataChange }) => {
         <div className="config-panel">
           <div className="config-section">
             <h4>Data</h4>
-            <select
-              onChange={(e) => generateNewData(e.target.value)}
-              className="data-select"
-            >
+            <select onChange={(e) => generateNewData(e.target.value)} className="data-select">
               <option value="">Select Data Type</option>
-              {dataTypes.map(type => (
+              {dataTypes.map((type) => (
                 <option key={type} value={type}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </option>
@@ -359,7 +352,7 @@ const PlotWidget = ({ widget, onConfigChange, onRemove, onDataChange }) => {
             <div className="color-controls">
               <label>Line Color:</label>
               <div className="rgb-controls">
-                {['r', 'g', 'b'].map(component => (
+                {['r', 'g', 'b'].map((component) => (
                   <input
                     key={component}
                     type="range"
@@ -387,14 +380,14 @@ const PlotWidget = ({ widget, onConfigChange, onRemove, onDataChange }) => {
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Main Dashboard Component
 const WebGLDashboard = () => {
-  const [widgets, setWidgets] = useState([]);
-  const [isAddingWidget, setIsAddingWidget] = useState(false);
-  const gridRef = useRef(null);
+  const [widgets, setWidgets] = useState([])
+  const [isAddingWidget, setIsAddingWidget] = useState(false)
+  const gridRef = useRef(null)
 
   const columnDefs = [
     {
@@ -405,129 +398,125 @@ const WebGLDashboard = () => {
       height: 350,
       resizable: true,
       sortable: false,
-      filter: false
-    }
-  ];
+      filter: false,
+    },
+  ]
 
   const components = {
     widgetRenderer: (params) => {
-      if (!params.data || !params.data.widget) return null;
-      
+      if (!params.data || !params.data.widget) return null
+
       return React.createElement(PlotWidget, {
         widget: params.data.widget,
         onConfigChange: (config) => updateWidgetConfig(params.data.widget.id, config),
         onRemove: (id) => removeWidget(id),
-        onDataChange: (data) => updateWidgetData(params.data.widget.id, data)
-      });
-    }
-  };
+        onDataChange: (data) => updateWidgetData(params.data.widget.id, data),
+      })
+    },
+  }
 
   const addWidget = async () => {
-    if (isAddingWidget) return;
-    
-    setIsAddingWidget(true);
+    if (isAddingWidget) return
+
+    setIsAddingWidget(true)
     try {
-      const widgetId = generateId('widget');
-      const defaultConfig = createDefaultConfig();
-      const sampleData = generateSampleData('sine');
-      
+      const widgetId = generateId('widget')
+      const defaultConfig = createDefaultConfig()
+      const sampleData = generateSampleData('sine')
+
       const newWidget = {
         id: widgetId,
         title: `Plot ${widgets.length + 1}`,
         config: defaultConfig,
-        data: sampleData
-      };
-      
-      setWidgets(prev => [...prev, newWidget]);
+        data: sampleData,
+      }
+
+      setWidgets((prev) => [...prev, newWidget])
     } catch (error) {
-      console.error('Error adding widget:', error);
+      console.error('Error adding widget:', error)
     } finally {
-      setIsAddingWidget(false);
+      setIsAddingWidget(false)
     }
-  };
+  }
 
   const removeWidget = (widgetId) => {
-    setWidgets(prev => prev.filter(w => w.id !== widgetId));
-  };
+    setWidgets((prev) => prev.filter((w) => w.id !== widgetId))
+  }
 
   const updateWidgetConfig = (widgetId, config) => {
-    setWidgets(prev => prev.map(w => 
-      w.id === widgetId ? { ...w, config } : w
-    ));
-  };
+    setWidgets((prev) => prev.map((w) => (w.id === widgetId ? { ...w, config } : w)))
+  }
 
   const updateWidgetData = (widgetId, data) => {
-    setWidgets(prev => prev.map(w => 
-      w.id === widgetId ? { ...w, data } : w
-    ));
-  };
+    setWidgets((prev) => prev.map((w) => (w.id === widgetId ? { ...w, data } : w)))
+  }
 
   const clearAllWidgets = () => {
-    setWidgets([]);
-  };
+    setWidgets([])
+  }
 
   const exportLayout = () => {
     const layout = {
       widgets: widgets,
-      timestamp: Date.now()
-    };
-    
-    const blob = new Blob([JSON.stringify(layout, null, 2)], { 
-      type: 'application/json' 
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `webgl-dashboard-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+      timestamp: Date.now(),
+    }
+
+    const blob = new Blob([JSON.stringify(layout, null, 2)], {
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `webgl-dashboard-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   const importLayout = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
     input.onchange = async (e) => {
-      const file = e.target.files[0];
+      const file = e.target.files[0]
       if (file) {
         try {
-          const text = await file.text();
-          const layout = JSON.parse(text);
-          
+          const text = await file.text()
+          const layout = JSON.parse(text)
+
           if (layout.widgets && Array.isArray(layout.widgets)) {
-            setWidgets(layout.widgets);
+            setWidgets(layout.widgets)
           }
         } catch (error) {
-          console.error('Error loading layout:', error);
-          alert('Error loading layout file. Please check the file format.');
+          console.error('Error loading layout:', error)
+          alert('Error loading layout file. Please check the file format.')
         }
       }
-    };
-    input.click();
-  };
+    }
+    input.click()
+  }
 
   // Convert widgets to grid data
-  const rowData = widgets.map(widget => ({
+  const rowData = widgets.map((widget) => ({
     id: widget.id,
     widget: widget,
-    content: widget.title
-  }));
+    content: widget.title,
+  }))
 
   const defaultColDef = {
     resizable: true,
     sortable: false,
-    filter: false
-  };
+    filter: false,
+  }
 
   const gridOptions = {
     rowHeight: 380,
     suppressRowClickSelection: true,
     suppressCellFocus: true,
     suppressRowHoverHighlight: true,
-    animateRows: true
-  };
+    animateRows: true,
+  }
 
   return (
     <div className="dashboard-container">
@@ -539,18 +528,14 @@ const WebGLDashboard = () => {
             {widgets.length} widget{widgets.length !== 1 ? 's' : ''}
           </div>
         </div>
-        
+
         <div className="toolbar-center">
-          <button 
-            className="btn btn-primary"
-            onClick={addWidget}
-            disabled={isAddingWidget}
-          >
+          <button className="btn btn-primary" onClick={addWidget} disabled={isAddingWidget}>
             <span className="btn-icon">➕</span>
             Add Plot Widget
           </button>
-          
-          <button 
+
+          <button
             className="btn btn-secondary"
             onClick={clearAllWidgets}
             disabled={widgets.length === 0}
@@ -559,9 +544,9 @@ const WebGLDashboard = () => {
             Clear All
           </button>
         </div>
-        
+
         <div className="toolbar-right">
-          <button 
+          <button
             className="btn btn-outline"
             onClick={exportLayout}
             disabled={widgets.length === 0}
@@ -569,11 +554,8 @@ const WebGLDashboard = () => {
             <span className="btn-icon">💾</span>
             Export
           </button>
-          
-          <button 
-            className="btn btn-outline"
-            onClick={importLayout}
-          >
+
+          <button className="btn btn-outline" onClick={importLayout}>
             <span className="btn-icon">📁</span>
             Import
           </button>
@@ -588,10 +570,7 @@ const WebGLDashboard = () => {
               <div className="empty-state-icon">📊</div>
               <h2>No Plot Widgets</h2>
               <p>Add your first plot widget to get started with data visualization</p>
-              <button 
-                className="btn btn-primary btn-lg"
-                onClick={addWidget}
-              >
+              <button className="btn btn-primary btn-lg" onClick={addWidget}>
                 <span className="btn-icon">➕</span>
                 Add Your First Widget
               </button>
@@ -632,7 +611,9 @@ const WebGLDashboard = () => {
           z-index: 10;
         }
 
-        .toolbar-left, .toolbar-center, .toolbar-right {
+        .toolbar-left,
+        .toolbar-center,
+        .toolbar-right {
           display: flex;
           align-items: center;
           gap: 16px;
@@ -790,7 +771,8 @@ const WebGLDashboard = () => {
           gap: 8px;
         }
 
-        .config-btn, .remove-btn {
+        .config-btn,
+        .remove-btn {
           background: none;
           border: none;
           cursor: pointer;
@@ -893,20 +875,20 @@ const WebGLDashboard = () => {
             gap: 12px;
             padding: 16px;
           }
-          
+
           .toolbar-left,
           .toolbar-center,
           .toolbar-right {
             justify-content: center;
           }
-          
+
           .toolbar-center {
             flex-wrap: wrap;
           }
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-export default WebGLDashboard;
+export default WebGLDashboard

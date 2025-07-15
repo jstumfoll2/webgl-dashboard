@@ -1,5 +1,5 @@
 /**
- * Grid Layout Utilities for AG-Grid Dashboard
+ * Grid Layout Utilities for Vue-Grid-Layout Dashboard
  * Provides helper functions for grid layout management, widget positioning,
  * and responsive grid operations.
  */
@@ -27,7 +27,7 @@ export const DEFAULT_GRID_CONFIG = {
   rowHeight: 200,
   minWidth: 300,
   minHeight: 200,
-};
+}
 
 /**
  * Widget size presets for different plot types
@@ -38,14 +38,14 @@ export const WIDGET_SIZE_PRESETS = {
   large: { width: 700, height: 400, colSpan: 3, rowSpan: 2 },
   wide: { width: 800, height: 250, colSpan: 4, rowSpan: 1 },
   tall: { width: 400, height: 500, colSpan: 2, rowSpan: 2 },
-};
+}
 
 /**
  * Generate a unique widget ID
  * @returns {string} Unique widget identifier
  */
 export function generateWidgetId() {
-  return `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
 /**
@@ -65,10 +65,10 @@ export function createWidgetConfig(options = {}) {
     size = 'medium',
     position = null,
     plotConfig = {},
-  } = options;
+  } = options
 
-  const sizeConfig = WIDGET_SIZE_PRESETS[size] || WIDGET_SIZE_PRESETS.medium;
-  const widgetId = generateWidgetId();
+  const sizeConfig = WIDGET_SIZE_PRESETS[size] || WIDGET_SIZE_PRESETS.medium
+  const widgetId = generateWidgetId()
 
   return {
     id: widgetId,
@@ -86,7 +86,7 @@ export function createWidgetConfig(options = {}) {
     },
     created: new Date().toISOString(),
     lastModified: new Date().toISOString(),
-  };
+  }
 }
 
 /**
@@ -95,12 +95,12 @@ export function createWidgetConfig(options = {}) {
  * @returns {Object} Grid dimensions {cols, rows}
  */
 export function calculateGridDimensions(widgetCount) {
-  if (widgetCount <= 0) return { cols: 1, rows: 1 };
-  
-  const cols = Math.ceil(Math.sqrt(widgetCount * 1.5));
-  const rows = Math.ceil(widgetCount / cols);
-  
-  return { cols: Math.max(cols, 2), rows: Math.max(rows, 1) };
+  if (widgetCount <= 0) return { cols: 1, rows: 1 }
+
+  const cols = Math.ceil(Math.sqrt(widgetCount * 1.5))
+  const rows = Math.ceil(widgetCount / cols)
+
+  return { cols: Math.max(cols, 2), rows: Math.max(rows, 1) }
 }
 
 /**
@@ -111,54 +111,54 @@ export function calculateGridDimensions(widgetCount) {
  * @returns {Object} Available position {col, row}
  */
 export function findAvailablePosition(widgets, newWidget, gridCols = 4) {
-  const occupied = new Set();
-  
+  const occupied = new Set()
+
   // Mark occupied positions
-  widgets.forEach(widget => {
-    const { position, colSpan = 1, rowSpan = 1 } = widget;
+  widgets.forEach((widget) => {
+    const { position, colSpan = 1, rowSpan = 1 } = widget
     if (position) {
       for (let r = position.row; r < position.row + rowSpan; r++) {
         for (let c = position.col; c < position.col + colSpan; c++) {
-          occupied.add(`${r}-${c}`);
+          occupied.add(`${r}-${c}`)
         }
       }
     }
-  });
+  })
 
-  const { colSpan = 1, rowSpan = 1 } = newWidget;
+  const { colSpan = 1, rowSpan = 1 } = newWidget
 
   // Find first available position
   for (let row = 0; row < 100; row++) {
     for (let col = 0; col <= gridCols - colSpan; col++) {
-      let canPlace = true;
-      
+      let canPlace = true
+
       // Check if all required cells are available
       for (let r = row; r < row + rowSpan && canPlace; r++) {
         for (let c = col; c < col + colSpan && canPlace; c++) {
           if (occupied.has(`${r}-${c}`)) {
-            canPlace = false;
+            canPlace = false
           }
         }
       }
-      
+
       if (canPlace) {
-        return { col, row };
+        return { col, row }
       }
     }
   }
-  
-  return { col: 0, row: 0 };
+
+  return { col: 0, row: 0 }
 }
 
 /**
- * Convert grid layout to AG-Grid column definitions
+ * Convert grid layout to Vue-Grid-Layout column definitions
  * @param {Array} widgets - Widgets array
  * @param {number} gridCols - Number of grid columns
- * @returns {Array} AG-Grid column definitions
+ * @returns {Array} Vue-Grid-Layout column definitions
  */
 export function createColumnDefinitions(widgets, gridCols = 4) {
-  const columns = [];
-  
+  const columns = []
+
   for (let i = 0; i < gridCols; i++) {
     columns.push({
       headerName: '',
@@ -171,42 +171,42 @@ export function createColumnDefinitions(widgets, gridCols = 4) {
       cellRendererParams: {
         columnIndex: i,
       },
-    });
+    })
   }
-  
-  return columns;
+
+  return columns
 }
 
 /**
- * Convert widgets to AG-Grid row data
+ * Convert widgets to Vue-Grid-Layout row data
  * @param {Array} widgets - Widgets array
  * @param {number} gridCols - Number of grid columns
- * @returns {Array} AG-Grid row data
+ * @returns {Array} Vue-Grid-Layout row data
  */
 export function createRowData(widgets, gridCols = 4) {
-  const grid = [];
-  const maxRow = Math.max(...widgets.map(w => (w.position?.row || 0) + (w.rowSpan || 1)), 1);
-  
+  const grid = []
+  const maxRow = Math.max(...widgets.map((w) => (w.position?.row || 0) + (w.rowSpan || 1)), 1)
+
   // Initialize grid with empty cells
   for (let row = 0; row < maxRow; row++) {
-    const rowData = { id: `row_${row}` };
+    const rowData = { id: `row_${row}` }
     for (let col = 0; col < gridCols; col++) {
-      rowData[`col${col}`] = null;
+      rowData[`col${col}`] = null
     }
-    grid.push(rowData);
+    grid.push(rowData)
   }
-  
+
   // Place widgets in grid
-  widgets.forEach(widget => {
-    const { position, colSpan = 1, rowSpan = 1 } = widget;
+  widgets.forEach((widget) => {
+    const { position, colSpan = 1, rowSpan = 1 } = widget
     if (position && position.row < maxRow && position.col < gridCols) {
       // Place widget in the top-left cell of its span
       if (grid[position.row]) {
         grid[position.row][`col${position.col}`] = {
           ...widget,
           isMainCell: true,
-        };
-        
+        }
+
         // Mark spanned cells
         for (let r = position.row; r < position.row + rowSpan; r++) {
           for (let c = position.col; c < position.col + colSpan; c++) {
@@ -216,16 +216,16 @@ export function createRowData(widgets, gridCols = 4) {
                   ...widget,
                   isSpannedCell: true,
                   mainCellPosition: position,
-                };
+                }
               }
             }
           }
         }
       }
     }
-  });
-  
-  return grid;
+  })
+
+  return grid
 }
 
 /**
@@ -238,7 +238,7 @@ export function saveDashboardLayout(layoutName, widgets, gridConfig = {}) {
   try {
     const layout = {
       name: layoutName,
-      widgets: widgets.map(widget => ({
+      widgets: widgets.map((widget) => ({
         ...widget,
         // Remove any runtime-only properties
         element: undefined,
@@ -247,21 +247,21 @@ export function saveDashboardLayout(layoutName, widgets, gridConfig = {}) {
       gridConfig,
       savedAt: new Date().toISOString(),
       version: '1.0',
-    };
-    
-    localStorage.setItem(`dashboard_layout_${layoutName}`, JSON.stringify(layout));
-    
-    // Update saved layouts list
-    const savedLayouts = getSavedLayoutsList();
-    if (!savedLayouts.includes(layoutName)) {
-      savedLayouts.push(layoutName);
-      localStorage.setItem('dashboard_saved_layouts', JSON.stringify(savedLayouts));
     }
-    
-    return true;
+
+    localStorage.setItem(`dashboard_layout_${layoutName}`, JSON.stringify(layout))
+
+    // Update saved layouts list
+    const savedLayouts = getSavedLayoutsList()
+    if (!savedLayouts.includes(layoutName)) {
+      savedLayouts.push(layoutName)
+      localStorage.setItem('dashboard_saved_layouts', JSON.stringify(savedLayouts))
+    }
+
+    return true
   } catch (error) {
-    console.error('Failed to save dashboard layout:', error);
-    return false;
+    console.error('Failed to save dashboard layout:', error)
+    return false
   }
 }
 
@@ -272,20 +272,20 @@ export function saveDashboardLayout(layoutName, widgets, gridConfig = {}) {
  */
 export function loadDashboardLayout(layoutName) {
   try {
-    const layoutData = localStorage.getItem(`dashboard_layout_${layoutName}`);
-    if (!layoutData) return null;
-    
-    const layout = JSON.parse(layoutData);
-    
+    const layoutData = localStorage.getItem(`dashboard_layout_${layoutName}`)
+    if (!layoutData) return null
+
+    const layout = JSON.parse(layoutData)
+
     // Validate layout structure
     if (!layout.widgets || !Array.isArray(layout.widgets)) {
-      throw new Error('Invalid layout format');
+      throw new Error('Invalid layout format')
     }
-    
-    return layout;
+
+    return layout
   } catch (error) {
-    console.error('Failed to load dashboard layout:', error);
-    return null;
+    console.error('Failed to load dashboard layout:', error)
+    return null
   }
 }
 
@@ -295,11 +295,11 @@ export function loadDashboardLayout(layoutName) {
  */
 export function getSavedLayoutsList() {
   try {
-    const layouts = localStorage.getItem('dashboard_saved_layouts');
-    return layouts ? JSON.parse(layouts) : [];
+    const layouts = localStorage.getItem('dashboard_saved_layouts')
+    return layouts ? JSON.parse(layouts) : []
   } catch (error) {
-    console.error('Failed to get saved layouts list:', error);
-    return [];
+    console.error('Failed to get saved layouts list:', error)
+    return []
   }
 }
 
@@ -310,17 +310,17 @@ export function getSavedLayoutsList() {
  */
 export function deleteDashboardLayout(layoutName) {
   try {
-    localStorage.removeItem(`dashboard_layout_${layoutName}`);
-    
+    localStorage.removeItem(`dashboard_layout_${layoutName}`)
+
     // Update saved layouts list
-    const savedLayouts = getSavedLayoutsList();
-    const updatedLayouts = savedLayouts.filter(name => name !== layoutName);
-    localStorage.setItem('dashboard_saved_layouts', JSON.stringify(updatedLayouts));
-    
-    return true;
+    const savedLayouts = getSavedLayoutsList()
+    const updatedLayouts = savedLayouts.filter((name) => name !== layoutName)
+    localStorage.setItem('dashboard_saved_layouts', JSON.stringify(updatedLayouts))
+
+    return true
   } catch (error) {
-    console.error('Failed to delete dashboard layout:', error);
-    return false;
+    console.error('Failed to delete dashboard layout:', error)
+    return false
   }
 }
 
@@ -330,32 +330,36 @@ export function deleteDashboardLayout(layoutName) {
  * @returns {Object} Validation result { isValid, errors }
  */
 export function validateWidgetConfig(widget) {
-  const errors = [];
-  
+  const errors = []
+
   if (!widget.id) {
-    errors.push('Widget must have an ID');
+    errors.push('Widget must have an ID')
   }
-  
+
   if (!widget.type) {
-    errors.push('Widget must have a type');
+    errors.push('Widget must have a type')
   }
-  
-  if (!widget.position || typeof widget.position.col !== 'number' || typeof widget.position.row !== 'number') {
-    errors.push('Widget must have valid position coordinates');
+
+  if (
+    !widget.position ||
+    typeof widget.position.col !== 'number' ||
+    typeof widget.position.row !== 'number'
+  ) {
+    errors.push('Widget must have valid position coordinates')
   }
-  
+
   if (widget.colSpan && (widget.colSpan < 1 || widget.colSpan > 12)) {
-    errors.push('Widget colSpan must be between 1 and 12');
+    errors.push('Widget colSpan must be between 1 and 12')
   }
-  
+
   if (widget.rowSpan && (widget.rowSpan < 1 || widget.rowSpan > 12)) {
-    errors.push('Widget rowSpan must be between 1 and 12');
+    errors.push('Widget rowSpan must be between 1 and 12')
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
-  };
+  }
 }
 
 /**
@@ -370,28 +374,28 @@ export function getResponsiveGridConfig(screenWidth) {
       gridCols: 1,
       minWidgetWidth: 280,
       defaultWidgetHeight: 200,
-    };
+    }
   } else if (screenWidth < 1024) {
     // Tablet
     return {
       gridCols: 2,
       minWidgetWidth: 350,
       defaultWidgetHeight: 250,
-    };
+    }
   } else if (screenWidth < 1440) {
     // Desktop
     return {
       gridCols: 3,
       minWidgetWidth: 400,
       defaultWidgetHeight: 300,
-    };
+    }
   } else {
     // Large Desktop
     return {
       gridCols: 4,
       minWidgetWidth: 450,
       defaultWidgetHeight: 350,
-    };
+    }
   }
 }
 
@@ -402,33 +406,33 @@ export function getResponsiveGridConfig(screenWidth) {
  * @returns {Array} Rearranged widgets array
  */
 export function autoArrangeWidgets(widgets, gridCols = 4) {
-  if (!widgets.length) return widgets;
-  
+  if (!widgets.length) return widgets
+
   // Sort widgets by size (larger widgets first) and then by creation date
   const sortedWidgets = [...widgets].sort((a, b) => {
-    const aSize = (a.colSpan || 1) * (a.rowSpan || 1);
-    const bSize = (b.colSpan || 1) * (b.rowSpan || 1);
-    
+    const aSize = (a.colSpan || 1) * (a.rowSpan || 1)
+    const bSize = (b.colSpan || 1) * (b.rowSpan || 1)
+
     if (aSize !== bSize) {
-      return bSize - aSize; // Larger first
+      return bSize - aSize // Larger first
     }
-    
-    return new Date(a.created || 0) - new Date(b.created || 0); // Older first
-  });
-  
+
+    return new Date(a.created || 0) - new Date(b.created || 0) // Older first
+  })
+
   // Reset positions and place widgets optimally
-  const arrangedWidgets = [];
-  
-  sortedWidgets.forEach(widget => {
-    const position = findAvailablePosition(arrangedWidgets, widget, gridCols);
+  const arrangedWidgets = []
+
+  sortedWidgets.forEach((widget) => {
+    const position = findAvailablePosition(arrangedWidgets, widget, gridCols)
     arrangedWidgets.push({
       ...widget,
       position,
       lastModified: new Date().toISOString(),
-    });
-  });
-  
-  return arrangedWidgets;
+    })
+  })
+
+  return arrangedWidgets
 }
 
 /**
@@ -450,4 +454,4 @@ export default {
   validateWidgetConfig,
   getResponsiveGridConfig,
   autoArrangeWidgets,
-};
+}

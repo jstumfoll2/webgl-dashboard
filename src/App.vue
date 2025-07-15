@@ -10,32 +10,24 @@
           </h1>
           <span class="version-badge">v{{ appVersion }}</span>
         </div>
-        
+
         <nav class="header-nav">
-          <router-link 
-            to="/" 
-            class="nav-link"
-            :class="{ active: $route.name === 'Dashboard' }"
-          >
+          <router-link to="/" class="nav-link" :class="{ active: $route.name === 'Dashboard' }">
             <span class="nav-icon">🏠</span>
             Dashboard
           </router-link>
         </nav>
 
         <div class="header-actions">
-          <button 
+          <button
             class="action-btn"
             @click="toggleTheme"
             :title="`Switch to ${isDark ? 'light' : 'dark'} theme`"
           >
             <span class="action-icon">{{ isDark ? '☀️' : '🌙' }}</span>
           </button>
-          
-          <button 
-            class="action-btn"
-            @click="showAbout = true"
-            title="About"
-          >
+
+          <button class="action-btn" @click="showAbout = true" title="About">
             <span class="action-icon">ℹ️</span>
           </button>
         </div>
@@ -59,18 +51,12 @@
             <span class="error-icon">⚠️</span>
             <h2>Something went wrong</h2>
             <p>{{ errorMessage }}</p>
-            <button class="retry-btn" @click="retryLoad">
-              Try Again
-            </button>
+            <button class="retry-btn" @click="retryLoad">Try Again</button>
           </div>
         </div>
 
         <!-- Router View -->
-        <router-view 
-          v-else
-          class="router-content"
-          :key="$route.fullPath"
-        />
+        <router-view v-else class="router-content" :key="$route.fullPath" />
       </div>
     </main>
 
@@ -78,11 +64,9 @@
     <footer class="app-footer">
       <div class="footer-content">
         <div class="footer-left">
-          <span class="copyright">
-            © 2024 WebGL Dashboard. Built with Vue 3 & WebGL-Plot.
-          </span>
+          <span class="copyright"> © 2024 WebGL Dashboard. Built with Vue 3 & WebGL-Plot. </span>
         </div>
-        
+
         <div class="footer-right">
           <span class="status-indicator" :class="{ online: isOnline }">
             {{ isOnline ? 'Online' : 'Offline' }}
@@ -189,7 +173,7 @@ const handleGlobalError = (error) => {
 onMounted(() => {
   // Initialize theme
   initTheme()
-  
+
   // Add event listeners
   window.addEventListener('online', handleOnline)
   window.addEventListener('offline', handleOffline)
@@ -197,12 +181,12 @@ onMounted(() => {
   window.addEventListener('unhandledrejection', (event) => {
     handleGlobalError(event.reason)
   })
-  
+
   // Simulate initial loading
   setTimeout(() => {
     isLoading.value = false
   }, 1500)
-  
+
   console.log('🎉 WebGL Dashboard App mounted successfully')
 })
 
@@ -235,14 +219,16 @@ router.afterEach(() => {
   min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Header Styles */
 .app-header {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -393,8 +379,12 @@ router.afterEach(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error State */
@@ -474,7 +464,7 @@ router.afterEach(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -488,7 +478,7 @@ router.afterEach(() => {
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
@@ -550,17 +540,17 @@ router.afterEach(() => {
     flex-wrap: wrap;
     gap: 1rem;
   }
-  
+
   .content-wrapper {
     padding: 1rem;
   }
-  
+
   .footer-content {
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
   }
-  
+
   .modal-content {
     margin: 1rem;
     width: calc(100% - 2rem);
